@@ -1,0 +1,65 @@
+{
+  "name": "@solscope/vscode",
+  "displayName": "SolScope",
+  "description": "Solana developer observability — CPI graphs, compute unit flamegraphs, account diffs, and error explanations inside VS Code.",
+  "version": "0.1.0",
+  "publisher": "solscope",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": ["Other", "Debuggers"],
+  "keywords": ["solana", "anchor", "blockchain", "debugging", "developer-tools"],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "solscope.inspectTransaction",
+        "title": "SolScope: Inspect Transaction"
+      },
+      {
+        "command": "solscope.showCpiGraph",
+        "title": "SolScope: Show CPI Graph"
+      },
+      {
+        "command": "solscope.showAccountDiff",
+        "title": "SolScope: Show Account Diff"
+      },
+      {
+        "command": "solscope.showCuFlamegraph",
+        "title": "SolScope: Show Compute Unit Flamegraph"
+      }
+    ],
+    "configuration": {
+      "title": "SolScope",
+      "properties": {
+        "solscope.rpcUrl": {
+          "type": "string",
+          "default": "https://api.devnet.solana.com",
+          "description": "RPC URL used to fetch transactions."
+        },
+        "solscope.cluster": {
+          "type": "string",
+          "enum": ["mainnet", "devnet", "localnet", "custom"],
+          "default": "devnet",
+          "description": "Default cluster to query."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsup src/extension.ts --format cjs --dts --sourcemap --external vscode",
+    "dev": "tsup src/extension.ts --format cjs --sourcemap --watch --external vscode",
+    "lint": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@solscope/core": "workspace:*",
+    "@solana/web3.js": "^1.95.0"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.90.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.5.0"
+  }
+}
