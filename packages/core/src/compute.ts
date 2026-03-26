@@ -1,4 +1,4 @@
-import type { TransactionResponse } from '@solana/web3.js'
+import type { VersionedTransactionResponse } from '@solana/web3.js'
 import type { CuUsage } from './types.js'
 
 // Matches: "Program <id> consumed <X> of <Y> compute units"
@@ -8,7 +8,7 @@ const CU_CONSUMED_RE = /Program (\S+) consumed (\d+) of (\d+) compute units/
  * Extracts per-instruction compute unit consumption by parsing the transaction log messages.
  * Each top-level program invocation emits a "consumed X of Y compute units" log line.
  */
-export function parseCuUsage(tx: TransactionResponse): CuUsage[] {
+export function parseCuUsage(tx: VersionedTransactionResponse): CuUsage[] {
   const logs = tx.meta?.logMessages ?? []
   const usage: CuUsage[] = []
   let instructionIndex = 0

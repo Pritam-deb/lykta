@@ -1,4 +1,4 @@
-import { Connection, PublicKey } from '@solana/web3.js'
+import type { Connection } from '@solana/web3.js'
 import type { CpiNode } from './types.js'
 
 /**

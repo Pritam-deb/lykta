@@ -1,4 +1,5 @@
 import type { Connection } from '@solana/web3.js'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { SolScopeError, SolScopeTransaction } from './types.js'
 
 /** Known Anchor framework error codes → human-readable messages */
@@ -57,7 +58,9 @@ export async function explainError(
   const name = typeof code === 'number' ? ANCHOR_ERRORS[code] : undefined
   const message = name ?? `Transaction failed with error: ${JSON.stringify(rawErr)}`
 
-  const error: SolScopeError = { code, programId, name, message }
+  const error: SolScopeError = name
+    ? { code, programId, name, message }
+    : { code, programId, message }
 
   // TODO (Week 4): call Claude API for AI-generated fix suggestion
   // if (process.env.ANTHROPIC_API_KEY) {

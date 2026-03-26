@@ -1,6 +1,6 @@
 import { Command } from 'commander'
 import { Connection } from '@solana/web3.js'
-import { fetchTransaction } from '@solscope/core'
+import { fetchTransaction, type CpiNode } from '@solscope/core'
 import chalk from 'chalk'
 
 const CLUSTERS: Record<string, string> = {
@@ -60,7 +60,7 @@ export const inspectCommand = new Command('inspect')
     }
   })
 
-function printCpiTree(nodes: ReturnType<typeof fetchTransaction> extends Promise<infer T> ? T['cpiTree'] : never, indent = 0): void {
+function printCpiTree(nodes: CpiNode[], indent = 0): void {
   for (const node of nodes) {
     const prefix = '  '.repeat(indent) + (indent === 0 ? '▶ ' : '└─ ')
     const label = node.instructionName
@@ -69,7 +69,7 @@ function printCpiTree(nodes: ReturnType<typeof fetchTransaction> extends Promise
     const failed = node.failed ? chalk.red(' ✗') : ''
     console.log(`${prefix}${label}${failed}`)
     if (node.children.length > 0) {
-      printCpiTree(node.children as any, indent + 1)
+      printCpiTree(node.children, indent + 1)
     }
   }
 }

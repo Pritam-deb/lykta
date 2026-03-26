@@ -1,0 +1,37 @@
+{
+  "_comment": "Simulated legacy SOL transfer transaction for unit testing — no RPC needed.",
+  "slot": 123456789,
+  "blockTime": 1700000000,
+  "transaction": {
+    "message": {
+      "accountKeys": [
+        "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+        "BrG44HdsEhzapvs8bEqzvkq4egwevS2y3W5D5zMtWen",
+        "11111111111111111111111111111111"
+      ],
+      "instructions": [
+        {
+          "programIdIndex": 2,
+          "accounts": [0, 1],
+          "data": "3Bxs411Dtc7pkFQj"
+        }
+      ],
+      "recentBlockhash": "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d"
+    },
+    "signatures": ["5KtP4R8dg1a7HmcP5Q9wJtMWwVBwmhHsDQdqNP7PbmEm"]
+  },
+  "meta": {
+    "err": null,
+    "fee": 5000,
+    "preBalances": [1000000000, 0, 1],
+    "postBalances": [999495000, 500000, 1],
+    "preTokenBalances": [],
+    "postTokenBalances": [],
+    "logMessages": [
+      "Program 11111111111111111111111111111111 invoke [1]",
+      "Program 11111111111111111111111111111111 consumed 150 of 200000 compute units",
+      "Program 11111111111111111111111111111111 success"
+    ],
+    "innerInstructions": []
+  }
+}

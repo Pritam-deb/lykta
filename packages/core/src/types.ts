@@ -1,4 +1,4 @@
-import type { PublicKey, TransactionResponse } from '@solana/web3.js'
+import type { VersionedTransactionResponse } from '@solana/web3.js'
 
 /** A single node in the CPI call tree. */
 export interface CpiNode {
@@ -95,5 +95,5 @@ export interface SolScopeTransaction {
   /** Decoded error (only present when success is false) */
   error?: SolScopeError
   /** Raw transaction response from the RPC */
-  raw: TransactionResponse
+  raw: VersionedTransactionResponse
 }

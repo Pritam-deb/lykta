@@ -1,0 +1,38 @@
+{
+  "_comment": "Simulated failed Anchor transaction with ConstraintMut error (code 2000) for unit testing.",
+  "slot": 123456790,
+  "blockTime": 1700000001,
+  "transaction": {
+    "message": {
+      "accountKeys": [
+        "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+        "BrG44HdsEhzapvs8bEqzvkq4egwevS2y3W5D5zMtWen",
+        "myProgram11111111111111111111111111111111111"
+      ],
+      "instructions": [
+        {
+          "programIdIndex": 2,
+          "accounts": [0, 1],
+          "data": "AQIDBAUGBwg="
+        }
+      ],
+      "recentBlockhash": "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d"
+    },
+    "signatures": ["4failed1111111111111111111111111111111111111111111"]
+  },
+  "meta": {
+    "err": { "InstructionError": [0, { "Custom": 2000 }] },
+    "fee": 5000,
+    "preBalances": [1000000000, 0, 1],
+    "postBalances": [999995000, 0, 1],
+    "preTokenBalances": [],
+    "postTokenBalances": [],
+    "logMessages": [
+      "Program myProgram11111111111111111111111111111111111 invoke [1]",
+      "Program log: AnchorError occurred. Error Code: ConstraintMut. Error Number: 2000. Error Message: A mut constraint was violated.",
+      "Program myProgram11111111111111111111111111111111111 consumed 5000 of 200000 compute units",
+      "Program myProgram11111111111111111111111111111111111 failed: custom program error: 0x7D0"
+    ],
+    "innerInstructions": []
+  }
+}

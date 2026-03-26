@@ -1,5 +1,4 @@
-import type { Connection, TransactionResponse } from '@solana/web3.js'
-import { PublicKey } from '@solana/web3.js'
+import type { Connection, VersionedTransactionResponse } from '@solana/web3.js'
 import type { AccountDiff } from './types.js'
 
 /**
@@ -7,14 +6,17 @@ import type { AccountDiff } from './types.js'
  * For token accounts, includes token balance deltas.
  */
 export async function extractAccountDiffs(
-  tx: TransactionResponse,
+  tx: VersionedTransactionResponse,
   connection: Connection,
 ): Promise<AccountDiff[]> {
   const message = tx.transaction.message
+  const toStr = (k: unknown): string =>
+    typeof k === 'string' ? k : (k as { toBase58(): string }).toBase58()
+
   const accountKeys =
     'staticAccountKeys' in message
-      ? message.staticAccountKeys.map((k) => k.toBase58())
-      : message.accountKeys.map((k) => k.toBase58())
+      ? message.staticAccountKeys.map(toStr)
+      : (message as { accountKeys: unknown[] }).accountKeys.map(toStr)
 
   const preBalances = tx.meta?.preBalances ?? []
   const postBalances = tx.meta?.postBalances ?? []

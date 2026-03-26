@@ -21,23 +21,26 @@ export async function fetchTransaction(
     throw new Error(`Transaction not found: ${signature}`)
   }
 
-  const cpiTree = buildCpiTree(tx)
-  const accountDiffs = await extractAccountDiffs(tx, connection)
-  const cuUsage = parseCuUsage(tx)
+  // tx is VersionedTransactionResponse when maxSupportedTransactionVersion is set
+  const vtx = tx as import('@solana/web3.js').VersionedTransactionResponse
+
+  const cpiTree = buildCpiTree(vtx)
+  const accountDiffs = await extractAccountDiffs(vtx, connection)
+  const cuUsage = parseCuUsage(vtx)
   const totalCu = cuUsage.reduce((sum, cu) => sum + cu.consumed, 0)
-  const success = tx.meta?.err === null
+  const success = vtx.meta?.err === null
 
   return {
     signature,
-    slot: tx.slot,
-    blockTime: tx.blockTime ?? null,
+    slot: vtx.slot,
+    blockTime: vtx.blockTime ?? null,
     success,
-    fee: tx.meta?.fee ?? 0,
+    fee: vtx.meta?.fee ?? 0,
     cpiTree,
     accountDiffs,
     cuUsage,
     totalCu,
-    error: undefined, // populated by explainError() if called
-    raw: tx,
+    // error is omitted here; populate it by calling explainError() on the result
+    raw: vtx,
   }
 }
