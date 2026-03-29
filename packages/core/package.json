@@ -1,5 +1,5 @@
 {
-  "name": "@solscope/core",
+  "name": "@lykta/core",
   "version": "0.1.0",
   "description": "Transaction decode engine, CPI graph builder, account diff, compute unit analyzer, and error explainer for Solana.",
   "main": "./dist/index.js",

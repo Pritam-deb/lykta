@@ -1,9 +1,9 @@
 {
-  "name": "@solscope/vscode",
-  "displayName": "SolScope",
+  "name": "@lykta/vscode",
+  "displayName": "Lykta",
   "description": "Solana developer observability — CPI graphs, compute unit flamegraphs, account diffs, and error explanations inside VS Code.",
   "version": "0.1.0",
-  "publisher": "solscope",
+  "publisher": "lykta",
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -14,31 +14,31 @@
   "contributes": {
     "commands": [
       {
-        "command": "solscope.inspectTransaction",
-        "title": "SolScope: Inspect Transaction"
+        "command": "lykta.inspectTransaction",
+        "title": "Lykta: Inspect Transaction"
       },
       {
-        "command": "solscope.showCpiGraph",
-        "title": "SolScope: Show CPI Graph"
+        "command": "lykta.showCpiGraph",
+        "title": "Lykta: Show CPI Graph"
       },
       {
-        "command": "solscope.showAccountDiff",
-        "title": "SolScope: Show Account Diff"
+        "command": "lykta.showAccountDiff",
+        "title": "Lykta: Show Account Diff"
       },
       {
-        "command": "solscope.showCuFlamegraph",
-        "title": "SolScope: Show Compute Unit Flamegraph"
+        "command": "lykta.showCuFlamegraph",
+        "title": "Lykta: Show Compute Unit Flamegraph"
       }
     ],
     "configuration": {
-      "title": "SolScope",
+      "title": "Lykta",
       "properties": {
-        "solscope.rpcUrl": {
+        "lykta.rpcUrl": {
           "type": "string",
           "default": "https://api.devnet.solana.com",
           "description": "RPC URL used to fetch transactions."
         },
-        "solscope.cluster": {
+        "lykta.cluster": {
           "type": "string",
           "enum": ["mainnet", "devnet", "localnet", "custom"],
           "default": "devnet",
@@ -54,7 +54,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@solscope/core": "workspace:*",
+    "@lykta/core": "workspace:*",
     "@solana/web3.js": "^1.95.0"
   },
   "devDependencies": {

@@ -1,6 +1,6 @@
 import type { Connection } from '@solana/web3.js'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import type { SolScopeError, SolScopeTransaction } from './types.js'
+import type { LyktaError, LyktaTransaction } from './types.js'
 
 /** Known Anchor framework error codes → human-readable messages */
 const ANCHOR_ERRORS: Record<number, string> = {
@@ -29,9 +29,9 @@ const ANCHOR_ERRORS: Record<number, string> = {
  * using the Claude API (when ANTHROPIC_API_KEY is set in the environment).
  */
 export async function explainError(
-  tx: SolScopeTransaction,
+  tx: LyktaTransaction,
   _connection: Connection,
-): Promise<SolScopeError | undefined> {
+): Promise<LyktaError | undefined> {
   if (tx.success) return undefined
 
   const rawErr = tx.raw.meta?.err
@@ -58,7 +58,7 @@ export async function explainError(
   const name = typeof code === 'number' ? ANCHOR_ERRORS[code] : undefined
   const message = name ?? `Transaction failed with error: ${JSON.stringify(rawErr)}`
 
-  const error: SolScopeError = name
+  const error: LyktaError = name
     ? { code, programId, name, message }
     : { code, programId, message }
 

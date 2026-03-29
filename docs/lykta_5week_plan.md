@@ -1,30 +1,30 @@
-# SolScope — 5-Week Hackathon Build Plan
+# Lykta — 5-Week Hackathon Build Plan
 ## Colosseum April 2026 · April 6 – May 11, 2026
 
 ---
 
 ## Context
 
-SolScope is a developer observability suite for Solana — competing in the Colosseum April 2026 hackathon (Infrastructure track). The core gap it fills: no tool today brings transaction-level visibility (CPI graphs, account diffs, per-instruction compute units, error explanation) into the IDE, CLI, or test framework. The main competitors — Helius Orb (web only), Seer (custom RPC required), Surfpool Studio (local-only) — all have a critical limitation SolScope can exploit: **none work on any transaction, anywhere, from inside VS Code**.
+Lykta is a developer observability suite for Solana — competing in the Colosseum April 2026 hackathon (Infrastructure track). The core gap it fills: no tool today brings transaction-level visibility (CPI graphs, account diffs, per-instruction compute units, error explanation) into the IDE, CLI, or test framework. The main competitors — Helius Orb (web only), Seer (custom RPC required), Surfpool Studio (local-only) — all have a critical limitation Lykta can exploit: **none work on any transaction, anywhere, from inside VS Code**.
 
 Key constraints:
 - 5 weeks (April 6 – May 11)
 - Team: Pritam + 1 teammate
-- Stack: ~80% TypeScript, ~20% Rust/Anchor (only for sample programs, not SolScope itself)
+- Stack: ~80% TypeScript, ~20% Rust/Anchor (only for sample programs, not Lykta itself)
 - Bankrun is deprecated — must use **LiteSVM** throughout
-- Seer already owns "Tenderly for Solana" framing — SolScope's pitch is **"observability anywhere, inside your workflow"**
+- Seer already owns "Tenderly for Solana" framing — Lykta's pitch is **"observability anywhere, inside your workflow"**
 
 ---
 
 ## Monorepo Package Structure
 
 ```
-solscope/
+lykta/
 ├── packages/
-│   ├── core/         → @solscope/core      (Pritam — primary)
-│   ├── vscode/       → @solscope/vscode    (Teammate — primary)
-│   ├── cli/          → @solscope/cli       (Pritam)
-│   └── litesvm/      → @solscope/litesvm   (Pritam)
+│   ├── core/         → @lykta/core      (Pritam — primary)
+│   ├── vscode/       → @lykta/vscode    (Teammate — primary)
+│   ├── cli/          → @lykta/cli       (Pritam)
+│   └── litesvm/      → @lykta/litesvm   (Pritam)
 ├── apps/
 │   └── demo/         → demo Anchor program for showcase
 └── turbo.json / pnpm-workspace.yaml
@@ -42,7 +42,7 @@ solscope/
 - [ ] Set up shared eslint/prettier/tsconfig
 - [ ] Write and deploy a demo Anchor program to devnet (counter + token mint) — this is the test subject for the entire project
 
-### Pritam — `@solscope/core`
+### Pritam — `@lykta/core`
 - [ ] `fetchTransaction(signature, connection)` — wrap `getTransaction` with `maxSupportedTransactionVersion: 0`
 - [ ] `decodeMeta(tx)` — extract accounts, signers, fee payer, recent blockhash, pre/post balances
 - [ ] `buildCpiTree(tx)` — parse inner instructions into a nested tree structure (`CpiNode[]`)
@@ -55,13 +55,13 @@ solscope/
   - Map CU to instruction index
 - [ ] Write unit tests using recorded devnet transaction fixtures (commit JSON snapshots)
 
-### Teammate — `@solscope/vscode` scaffolding
+### Teammate — `@lykta/vscode` scaffolding
 - [ ] Init VS Code extension (`yo code`, TypeScript template)
 - [ ] Get a Hello World WebView panel rendering in VS Code
 - [ ] Learn VS Code WebView message-passing API (panel ↔ extension host)
 - [ ] Read existing extensions for reference: Gimlet, Ackee Blockchain extension
 
-**End-of-week checkpoint:** `core` can decode a real devnet transaction into a typed `SolScopeTransaction` object. Extension can open a blank WebView panel.
+**End-of-week checkpoint:** `core` can decode a real devnet transaction into a typed `LyktaTransaction` object. Extension can open a blank WebView panel.
 
 ---
 
@@ -69,21 +69,21 @@ solscope/
 
 **Goal:** The primary "aha moment" — an interactive CPI call tree visible inside VS Code. This is the demo centerpiece.
 
-### Pritam — `@solscope/core` (continued)
+### Pritam — `@lykta/core` (continued)
 - [ ] `resolveIdl(programId)` — fetch verified Anchor IDL from chain (use `@coral-xyz/anchor` `Program.fetchIdl`)
   - Fallback: fetch from `api.shyft.to` or `anchor.so` API
 - [ ] `decodeInstruction(ix, idl)` — decode instruction data bytes using IDL discriminator + borsh layout
 - [ ] `buildCpiGraph(cpiTree, idls)` — annotate each CPI node with decoded instruction name + args
-- [ ] Export `SolScopeTransaction` type (the full enriched object the VS Code views consume)
+- [ ] Export `LyktaTransaction` type (the full enriched object the VS Code views consume)
 
-### Teammate — `@solscope/vscode` — CPI Graph panel
+### Teammate — `@lykta/vscode` — CPI Graph panel
 - [ ] WebView React app (bundled with esbuild inside the extension)
 - [ ] **CPI Graph view** using `vis.js` Network or `D3.js` hierarchical tree
   - Nodes: program name (resolved from IDL), instruction name, depth level
   - Edges: parent → child CPI call
   - Click a node → side panel shows instruction args, accounts list
   - Color coding: system programs (gray), user programs (blue), failed nodes (red)
-- [ ] VS Code command: `SolScope: Inspect Transaction` → prompts for signature → fetches via `core` → renders graph
+- [ ] VS Code command: `Lykta: Inspect Transaction` → prompts for signature → fetches via `core` → renders graph
 - [ ] VS Code sidebar tree view showing all instructions in flat list (fallback if WebView fails)
 
 **End-of-week checkpoint:** Paste a signature in VS Code command palette → interactive CPI tree renders in a panel. Record a 30-second screen capture.
@@ -94,16 +94,16 @@ solscope/
 
 **Goal:** Complete the three core novel features. Add CLI.
 
-### Pritam — `@solscope/cli`
-- [ ] `npx solscope inspect <signature> [--cluster devnet|mainnet|localnet]`
+### Pritam — `@lykta/cli`
+- [ ] `npx lykta inspect <signature> [--cluster devnet|mainnet|localnet]`
   - Terminal table output: instructions, programs, accounts touched
   - ASCII CPI tree (using `treeify` or manual indent rendering)
   - Per-instruction CU bar chart in terminal (use `cli-progress` or sparklines)
-- [ ] `npx solscope diff <signature>` — show account state diffs as colored table (pre → post)
-- [ ] `npx solscope error <signature>` — decode error code + show plain-English explanation (stub Claude call for now, wire up Week 4)
-- [ ] Config file support (`solscope.config.json`) for RPC URL, default cluster
+- [ ] `npx lykta diff <signature>` — show account state diffs as colored table (pre → post)
+- [ ] `npx lykta error <signature>` — decode error code + show plain-English explanation (stub Claude call for now, wire up Week 4)
+- [ ] Config file support (`lykta.config.json`) for RPC URL, default cluster
 
-### Teammate — `@solscope/vscode` — Diff & CU views
+### Teammate — `@lykta/vscode` — Diff & CU views
 - [ ] **Account Diff panel** — two-column before/after view for each account touched
   - Show: lamport change, owner change, data diff (hex + decoded via IDL if possible)
   - Highlight changed bytes in red/green
@@ -120,24 +120,24 @@ solscope/
 
 **Goal:** Complete the developer workflow loop — from test failure to fix suggestion.
 
-### Pritam — Error Explainer + `@solscope/litesvm`
-- [ ] **Error explainer** in `@solscope/core`:
+### Pritam — Error Explainer + `@lykta/litesvm`
+- [ ] **Error explainer** in `@lykta/core`:
   - `explainError(tx, connection)` — maps error codes to plain English
   - Known error map: Anchor error codes, SPL Token errors, System Program errors
   - Claude API integration: call `claude-sonnet-4-6` with context: logs + IDL + error code → get fix suggestion
   - Prompt template: include program source context if available, IDL, full log messages
-- [ ] **`@solscope/litesvm`** package:
+- [ ] **`@lykta/litesvm`** package:
   - Wrap `litesvm` npm package (v0.5.0+)
   - Override `sendTransaction` to capture pre/post account state
   - On failure: auto-call `explainError`, print enhanced error with CPI tree + suggestion
-  - Export `SolScopeTestContext` that extends LiteSVM's test context
+  - Export `LyktaTestContext` that extends LiteSVM's test context
   - Example usage:
     ```ts
-    const ctx = new SolScopeTestContext();
+    const ctx = new LyktaTestContext();
     await ctx.processTransaction(tx); // enhanced errors on failure
     ```
 
-### Teammate — `@solscope/vscode` — Error Panel + polish
+### Teammate — `@lykta/vscode` — Error Panel + polish
 - [ ] **Error explanation panel** — shown when transaction failed
   - Display: raw error code, program that threw, plain-English explanation, Claude-generated fix suggestion
   - Copy-to-clipboard button for the fix suggestion
@@ -145,7 +145,7 @@ solscope/
 - [ ] VS Code status bar item showing cluster + last inspected transaction
 - [ ] VS Code settings: RPC URL, Claude API key input, default cluster
 
-**End-of-week checkpoint:** Write a failing LiteSVM test in VS Code → SolScope auto-renders why it failed with a suggested fix. Full loop works.
+**End-of-week checkpoint:** Write a failing LiteSVM test in VS Code → Lykta auto-renders why it failed with a suggested fix. Full loop works.
 
 ---
 
@@ -154,23 +154,23 @@ solscope/
 **Goal:** Submission-ready. Every feature works on real transactions. Videos recorded.
 
 ### Both — Integration & Demo Program
-- [ ] Build a non-trivial demo Anchor program that exercises all SolScope features:
+- [ ] Build a non-trivial demo Anchor program that exercises all Lykta features:
   - Uses CPIs (calls SPL Token, calls a second program)
   - Has a failing path with an interesting error
   - Uses Token-2022 if time permits
-- [ ] Run the demo program through every SolScope feature — fix all edge cases found
+- [ ] Run the demo program through every Lykta feature — fix all edge cases found
 - [ ] Write a comprehensive README with installation, usage examples, and screenshots
-- [ ] Publish packages to npm (use `@solscope/` scope, public access)
+- [ ] Publish packages to npm (use `@lykta/` scope, public access)
 
 ### Pritam — Stretch goals (if ahead of schedule)
-- [ ] `npx solscope watch <program-id>` — subscribe to program logs via WebSocket, stream new transactions through the decode pipeline in real-time (addresses Solana Foundation Post-Deployment Monitoring RFP directly)
+- [ ] `npx lykta watch <program-id>` — subscribe to program logs via WebSocket, stream new transactions through the decode pipeline in real-time (addresses Solana Foundation Post-Deployment Monitoring RFP directly)
 - [ ] **Token-2022 extension decoder** — specialized decoding for Transfer Hooks, CPI Guard failures
 
 ### Teammate — Pitch materials
 - [ ] **3-minute pitch video** (most important submission asset):
   - Problem framing: "Your Anchor test fails. You get a log dump. Where do you start?"
-  - Demo: failing test → SolScope renders CPI tree + error explanation + fix → fixed test
-  - Competitive framing: "Helius Orb explains in browser. Seer needs its RPC. SolScope works everywhere, inside your editor."
+  - Demo: failing test → Lykta renders CPI tree + error explanation + fix → fixed test
+  - Competitive framing: "Helius Orb explains in browser. Seer needs its RPC. Lykta works everywhere, inside your editor."
 - [ ] **2-3 minute technical demo video**:
   - Screen recording: inspect a mainnet transaction signature in VS Code
   - Show CPI graph, CU flamegraph, account diff, error explanation — all in one session
@@ -184,10 +184,10 @@ solscope/
 
 | Week | Pritam | Teammate |
 |------|--------|----------|
-| 1 | `@solscope/core` — fetch + decode + CPI tree + account diff + CU parser | VS Code extension scaffold + WebView basics |
+| 1 | `@lykta/core` — fetch + decode + CPI tree + account diff + CU parser | VS Code extension scaffold + WebView basics |
 | 2 | IDL resolution + instruction decoding + graph data structure | CPI Graph panel (vis.js/D3) |
 | 3 | CLI tool (`inspect`, `diff`, `error` commands) | Account Diff panel + CU Flamegraph panel |
-| 4 | Error explainer (Claude API) + `@solscope/litesvm` | Error panel + VS Code polish + settings |
+| 4 | Error explainer (Claude API) + `@lykta/litesvm` | Error panel + VS Code polish + settings |
 | 5 | Stretch goals + npm publish + integration fixes | Pitch video + technical demo video + README |
 
 ---
@@ -213,16 +213,16 @@ solscope/
 2. **Per-instruction CU extraction from logs** is parsing-fragile — test with many transaction types early
 3. **VS Code WebView sandboxing** restricts outbound network calls — all RPC calls must go through the extension host, not the WebView
 4. **Claude API key management in VS Code** — use `vscode.workspace.getConfiguration` + SecretStorage, never hardcode
-5. **Seer launches publicly in Feb 2026** — monitor their feature set; if they ship VS Code integration before May, lean harder into LiteSVM integration and `solscope watch`
+5. **Seer launches publicly in Feb 2026** — monitor their feature set; if they ship VS Code integration before May, lean harder into LiteSVM integration and `lykta watch`
 
 ---
 
 ## Verification Checklist (before submission)
 
-- [ ] `@solscope/core`: unit tests pass on 5+ recorded devnet transaction fixtures (simple transfer, Anchor CPI, failed tx, Token-2022 tx)
-- [ ] `@solscope/cli`: `npx solscope inspect <real-mainnet-sig>` renders without crash
-- [ ] `@solscope/vscode`: extension activates, all 4 panels open on a real devnet signature
-- [ ] `@solscope/litesvm`: failing LiteSVM test shows enhanced error output with suggestion
+- [ ] `@lykta/core`: unit tests pass on 5+ recorded devnet transaction fixtures (simple transfer, Anchor CPI, failed tx, Token-2022 tx)
+- [ ] `@lykta/cli`: `npx lykta inspect <real-mainnet-sig>` renders without crash
+- [ ] `@lykta/vscode`: extension activates, all 4 panels open on a real devnet signature
+- [ ] `@lykta/litesvm`: failing LiteSVM test shows enhanced error output with suggestion
 - [ ] All 4 packages published to npm and importable
 - [ ] GitHub repo is public, has README, CI passes
 - [ ] Both videos recorded and under size limits

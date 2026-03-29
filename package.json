@@ -1,5 +1,5 @@
 {
-  "name": "solscope",
+  "name": "lykta",
   "private": true,
   "version": "0.0.0",
   "description": "Developer observability suite for Solana — CPI graphs, account diffs, compute unit flamegraphs, and error explanations in your IDE, terminal, and test suite.",

@@ -1,5 +1,5 @@
-// @solscope/litesvm — LiteSVM wrapper with SolScope observability hooks.
+// @lykta/litesvm — LiteSVM wrapper with Lykta observability hooks.
 // Drop-in replacement for raw LiteSVM usage in tests.
 
-export { SolScopeTestContext } from './context.js'
-export type { SolScopeTestResult } from './context.js'
+export { LyktaTestContext } from './context.js'
+export type { LyktaTestResult } from './context.js'

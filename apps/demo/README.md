@@ -1,6 +1,6 @@
-# SolScope Demo Program
+# Lykta Demo Program
 
-A non-trivial Anchor program used as the live demo subject for SolScope features.
+A non-trivial Anchor program used as the live demo subject for Lykta features.
 
 ## What it does
 

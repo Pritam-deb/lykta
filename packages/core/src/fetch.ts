@@ -1,17 +1,17 @@
 import { Connection } from '@solana/web3.js'
-import type { SolScopeTransaction } from './types.js'
+import type { LyktaTransaction } from './types.js'
 import { buildCpiTree } from './cpi.js'
 import { extractAccountDiffs } from './diff.js'
 import { parseCuUsage } from './compute.js'
 
 /**
  * Fetches and fully decodes a transaction by signature.
- * This is the primary entry point for all SolScope analysis.
+ * This is the primary entry point for all Lykta analysis.
  */
 export async function fetchTransaction(
   signature: string,
   connection: Connection,
-): Promise<SolScopeTransaction> {
+): Promise<LyktaTransaction> {
   const tx = await connection.getTransaction(signature, {
     maxSupportedTransactionVersion: 0,
     commitment: 'confirmed',

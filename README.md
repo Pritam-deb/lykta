@@ -1,6 +1,24 @@
-# SolScope
+<p align="center">
+  <svg width="180" height="54" viewBox="0 0 180 54" xmlns="http://www.w3.org/2000/svg">
+    <g transform="translate(0,3)">
+      <ellipse cx="24" cy="26" rx="13" ry="13" fill="#9945FF" opacity="0.13"/>
+      <rect x="16" y="14" width="16" height="22" rx="4" fill="#9945FF"/>
+      <rect x="19" y="9" width="10" height="6" rx="2" fill="#7B2FD4"/>
+      <rect x="19" y="35" width="10" height="5" rx="2" fill="#7B2FD4"/>
+      <rect x="21" y="20" width="6" height="10" rx="2" fill="#F0E6FF" opacity="0.9"/>
+      <path d="M24 9 V5" stroke="#7B2FD4" stroke-width="2" stroke-linecap="round" fill="none"/>
+      <line x1="10" y1="18" x2="6" y2="15" stroke="#9945FF" stroke-width="1.2" stroke-linecap="round" opacity="0.5"/>
+      <line x1="8" y1="26" x2="3" y2="26" stroke="#9945FF" stroke-width="1.2" stroke-linecap="round" opacity="0.4"/>
+      <line x1="10" y1="34" x2="6" y2="37" stroke="#9945FF" stroke-width="1.2" stroke-linecap="round" opacity="0.5"/>
+      <line x1="38" y1="18" x2="42" y2="15" stroke="#9945FF" stroke-width="1.2" stroke-linecap="round" opacity="0.5"/>
+      <line x1="40" y1="26" x2="45" y2="26" stroke="#9945FF" stroke-width="1.2" stroke-linecap="round" opacity="0.4"/>
+      <line x1="38" y1="34" x2="42" y2="37" stroke="#9945FF" stroke-width="1.2" stroke-linecap="round" opacity="0.5"/>
+    </g>
+    <text x="56" y="32" font-family="system-ui, sans-serif" font-size="26" font-weight="500" fill="#0A0A0A" letter-spacing="-0.5">lykta</text>
+  </svg>
+</p>
 
-**Developer observability for Solana — CPI graphs, compute unit flamegraphs, account diffs, and error explanations in your IDE, terminal, and test suite.**
+**Light inside every transaction — CPI graphs, compute unit flamegraphs, account diffs, and error explanations in your IDE, terminal, and test suite.**
 
 No custom RPC. No browser required. Paste any transaction signature — mainnet, devnet, or local — and get instant visibility inside VS Code.
 
@@ -8,12 +26,12 @@ No custom RPC. No browser required. Paste any transaction signature — mainnet,
 
 ## Packages
 
-| Package                                   | Description                                                                             |
-| ----------------------------------------- | --------------------------------------------------------------------------------------- |
-| [`@solscope/core`](./packages/core)       | Transaction decode engine, CPI tree builder, account diff, CU analyzer, error explainer |
-| [`@solscope/cli`](./packages/cli)         | `npx solscope inspect \| diff \| error <signature>`                                     |
-| [`@solscope/vscode`](./packages/vscode)   | VS Code extension — CPI graph, account diff, CU flamegraph, error explanation panels    |
-| [`@solscope/litesvm`](./packages/litesvm) | LiteSVM wrapper with enhanced error output for tests                                    |
+| Package                                 | Description                                                                             |
+| --------------------------------------- | --------------------------------------------------------------------------------------- |
+| [`@lykta/core`](./packages/core)       | Transaction decode engine, CPI tree builder, account diff, CU analyzer, error explainer |
+| [`@lykta/cli`](./packages/cli)         | `npx lykta inspect \| diff \| error <signature>`                                        |
+| [`@lykta/vscode`](./packages/vscode)   | VS Code extension — CPI graph, account diff, CU flamegraph, error explanation panels    |
+| [`@lykta/litesvm`](./packages/litesvm) | LiteSVM wrapper with enhanced error output for tests                                    |
 
 ---
 
@@ -23,33 +41,33 @@ No custom RPC. No browser required. Paste any transaction signature — mainnet,
 
 ```bash
 # Inspect any transaction — CPI tree + compute units + account changes
-npx @solscope/cli inspect <SIGNATURE> --cluster devnet
+npx @lykta/cli inspect <SIGNATURE> --cluster devnet
 
 # Show account state diffs
-npx @solscope/cli diff <SIGNATURE>
+npx @lykta/cli diff <SIGNATURE>
 
 # Explain why a transaction failed
-npx @solscope/cli error <SIGNATURE>
+npx @lykta/cli error <SIGNATURE>
 
 # Set ANTHROPIC_API_KEY for AI-powered fix suggestions
-ANTHROPIC_API_KEY=sk-ant-... npx @solscope/cli error <SIGNATURE>
+ANTHROPIC_API_KEY=sk-ant-... npx @lykta/cli error <SIGNATURE>
 ```
 
 ### VS Code
 
-1. Install the **SolScope** extension from the VS Code Marketplace (or install the `.vsix` directly during the hackathon)
-2. Open the command palette (`Cmd+Shift+P`) and run **SolScope: Inspect Transaction**
+1. Install the **Lykta** extension from the VS Code Marketplace (or install the `.vsix` directly during the hackathon)
+2. Open the command palette (`Cmd+Shift+P`) and run **Lykta: Inspect Transaction**
 3. Paste a transaction signature
 4. CPI graph, account diff, and compute unit flamegraph panels open automatically
 
 ### LiteSVM (tests)
 
-Replace raw LiteSVM calls with `SolScopeTestContext` to get enhanced error output on test failure:
+Replace raw LiteSVM calls with `LyktaTestContext` to get enhanced error output on test failure:
 
 ```ts
-import { SolScopeTestContext } from '@solscope/litesvm'
+import { LyktaTestContext } from '@lykta/litesvm'
 
-const ctx = new SolScopeTestContext()
+const ctx = new LyktaTestContext()
 await ctx.loadProgram(fs.readFileSync('./target/deploy/my_program.so'))
 
 const result = await ctx.processTransaction(tx)
@@ -72,8 +90,8 @@ if (!result.success) {
 ### Setup
 
 ```bash
-git clone https://github.com/pritam-deb/solscope
-cd solscope
+git clone https://github.com/pritam-deb/lykta
+cd lykta
 pnpm install
 pnpm build
 ```
@@ -125,15 +143,15 @@ packages/core       ← All analysis logic. No UI, no CLI concerns.
     compute.ts      ← parseCuUsage() — per-instruction CU from log messages
     idl.ts          ← resolveIdl() + decodeInstruction() — Anchor IDL resolution
     errors.ts       ← explainError() — error code map + optional Claude API call
-    types.ts        ← SolScopeTransaction, CpiNode, AccountDiff, CuUsage, SolScopeError
+    types.ts        ← LyktaTransaction, CpiNode, AccountDiff, CuUsage, LyktaError
 
-packages/cli        ← Commander.js CLI. Consumes @solscope/core.
+packages/cli        ← Commander.js CLI. Consumes @lykta/core.
     commands/
-        inspect.ts  ← npx solscope inspect <sig>
-        diff.ts     ← npx solscope diff <sig>
-        error.ts    ← npx solscope error <sig>
+        inspect.ts  ← npx lykta inspect <sig>
+        diff.ts     ← npx lykta diff <sig>
+        error.ts    ← npx lykta error <sig>
 
-packages/vscode     ← VS Code extension. Consumes @solscope/core.
+packages/vscode     ← VS Code extension. Consumes @lykta/core.
     extension.ts    ← Activation, command registration
     panels/
         CpiGraphPanel.ts    ← WebView panel — vis.js CPI tree (Week 2)
@@ -141,15 +159,15 @@ packages/vscode     ← VS Code extension. Consumes @solscope/core.
         CuFlamegraph.ts     ← WebView panel — per-instruction CU bars (Week 3)
         ErrorPanel.ts       ← WebView panel — error + Claude suggestion (Week 4)
 
-packages/litesvm    ← LiteSVM wrapper. Consumes @solscope/core.
-    context.ts      ← SolScopeTestContext — intercepts tx processing (Week 4)
+packages/litesvm    ← LiteSVM wrapper. Consumes @lykta/core.
+    context.ts      ← LyktaTestContext — intercepts tx processing (Week 4)
 
 apps/demo           ← Anchor program used as the live demo subject
 ```
 
 ### Key design constraint: WebView networking
 
-**All RPC calls happen in the extension host process, not the WebView.** VS Code WebViews run in a sandboxed iframe that cannot make arbitrary network requests. The extension host fetches data, builds the `SolScopeTransaction` object, and sends it to the WebView via `panel.webview.postMessage()`. The WebView is purely a renderer.
+**All RPC calls happen in the extension host process, not the WebView.** VS Code WebViews run in a sandboxed iframe that cannot make arbitrary network requests. The extension host fetches data, builds the `LyktaTransaction` object, and sends it to the WebView via `panel.webview.postMessage()`. The WebView is purely a renderer.
 
 ---
 
@@ -157,7 +175,7 @@ apps/demo           ← Anchor program used as the live demo subject
 
 ### CLI
 
-Create `solscope.config.json` in your project root:
+Create `lykta.config.json` in your project root:
 
 ```json
 {
@@ -169,18 +187,18 @@ Create `solscope.config.json` in your project root:
 Or pass flags directly:
 
 ```bash
-solscope inspect <sig> --rpc https://your-rpc.com
-solscope inspect <sig> --cluster mainnet
+lykta inspect <sig> --rpc https://your-rpc.com
+lykta inspect <sig> --cluster mainnet
 ```
 
 ### VS Code
 
-Open Settings (`Cmd+,`) and search for **SolScope**:
+Open Settings (`Cmd+,`) and search for **Lykta**:
 
-| Setting            | Default                         | Description                                                   |
-| ------------------ | ------------------------------- | ------------------------------------------------------------- |
-| `solscope.rpcUrl`  | `https://api.devnet.solana.com` | RPC endpoint                                                  |
-| `solscope.cluster` | `devnet`                        | Cluster shorthand (`mainnet \| devnet \| localnet \| custom`) |
+| Setting          | Default                         | Description                                                   |
+| ---------------- | ------------------------------- | ------------------------------------------------------------- |
+| `lykta.rpcUrl`  | `https://api.devnet.solana.com` | RPC endpoint                                                  |
+| `lykta.cluster` | `devnet`                        | Cluster shorthand (`mainnet \| devnet \| localnet \| custom`) |
 
 Claude API key for AI error suggestions: set `ANTHROPIC_API_KEY` in your shell environment, or configure it in VS Code settings (stored in SecretStorage, never in plaintext).
 
@@ -188,26 +206,26 @@ Claude API key for AI error suggestions: set `ANTHROPIC_API_KEY` in your shell e
 
 ## Competitive positioning
 
-| Tool            | Where it works      | CPI graph      | Account diff      | Per-instruction CU | VS Code      | Test integration   |
-| --------------- | ------------------- | -------------- | ----------------- | ------------------ | ------------ | ------------------ |
-| **SolScope**    | Any tx, anywhere    | ✅ Interactive | ✅ Full data diff | ✅ Flamegraph      | ✅ Extension | ✅ LiteSVM wrapper |
-| Helius Orb      | Web browser         | ❌ Flat list   | ❌ Balance only   | ❌                 | ❌           | ❌                 |
-| Seer            | Custom RPC required | ❌             | ❌                | ❌                 | ❌           | ❌                 |
-| Surfpool Studio | Local env only      | ❌             | ✅ Byte-level     | ❌                 | ❌           | ❌                 |
-| Phalcon         | Web browser         | ✅ Multi-level | ❌ Balance only   | ❌                 | ❌           | ❌                 |
+| Tool        | Where it works      | CPI graph      | Account diff      | Per-instruction CU | VS Code      | Test integration   |
+| ----------- | ------------------- | -------------- | ----------------- | ------------------ | ------------ | ------------------ |
+| **Lykta**   | Any tx, anywhere    | ✅ Interactive | ✅ Full data diff | ✅ Flamegraph      | ✅ Extension | ✅ LiteSVM wrapper |
+| Helius Orb  | Web browser         | ❌ Flat list   | ❌ Balance only   | ❌                 | ❌           | ❌                 |
+| Seer        | Custom RPC required | ❌             | ❌                | ❌                 | ❌           | ❌                 |
+| Surfpool Studio | Local env only  | ❌             | ✅ Byte-level     | ❌                 | ❌           | ❌                 |
+| Phalcon     | Web browser         | ✅ Multi-level | ❌ Balance only   | ❌                 | ❌           | ❌                 |
 
 ---
 
 ## Contributing
 
-This project is built for the [Colosseum April 2026 Hackathon](https://www.colosseum.org/). The build plan is in [`docs/`](./docs/solscope_5week_plan.md).
+This project is built for the [Colosseum April 2026 Hackathon](https://www.colosseum.org/). The build plan is in [`docs/`](./docs/lykta_5week_plan.md).
 
 ### Week-by-week build targets
 
-- **Week 1 (Apr 6–12):** `@solscope/core` — fetch, CPI tree, account diff, CU parser + devnet fixture tests
-- **Week 2 (Apr 13–19):** IDL resolution + `@solscope/vscode` CPI Graph panel (vis.js)
-- **Week 3 (Apr 20–26):** `@solscope/cli` + Account Diff panel + CU Flamegraph panel
-- **Week 4 (Apr 27–May 3):** Error explainer (Claude API) + `@solscope/litesvm` + Error panel
+- **Week 1 (Apr 6–12):** `@lykta/core` — fetch, CPI tree, account diff, CU parser + devnet fixture tests
+- **Week 2 (Apr 13–19):** IDL resolution + `@lykta/vscode` CPI Graph panel (vis.js)
+- **Week 3 (Apr 20–26):** `@lykta/cli` + Account Diff panel + CU Flamegraph panel
+- **Week 4 (Apr 27–May 3):** Error explainer (Claude API) + `@lykta/litesvm` + Error panel
 - **Week 5 (May 4–11):** Demo program, pitch video, npm publish, submission
 
 ### Before submitting a PR

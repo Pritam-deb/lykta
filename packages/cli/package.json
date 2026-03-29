@@ -1,9 +1,9 @@
 {
-  "name": "@solscope/cli",
+  "name": "@lykta/cli",
   "version": "0.1.0",
   "description": "CLI tool for inspecting, diffing, and explaining Solana transactions.",
   "bin": {
-    "solscope": "./dist/bin.js"
+    "lykta": "./dist/bin.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -22,7 +22,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@solscope/core": "workspace:*",
+    "@lykta/core": "workspace:*",
     "@solana/web3.js": "^1.95.0",
     "chalk": "^5.3.0",
     "commander": "^12.0.0"

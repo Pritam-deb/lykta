@@ -1,5 +1,5 @@
 {
-  "name": "@solscope/litesvm",
+  "name": "@lykta/litesvm",
   "version": "0.1.0",
   "description": "LiteSVM wrapper with enhanced error reporting, CPI trees, account diffs, and compute unit profiling for Solana tests.",
   "main": "./dist/index.js",
@@ -19,7 +19,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@solscope/core": "workspace:*",
+    "@lykta/core": "workspace:*",
     "@solana/web3.js": "^1.95.0",
     "litesvm": "^0.5.0"
   },

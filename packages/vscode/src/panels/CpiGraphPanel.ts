@@ -1,5 +1,5 @@
 import * as vscode from 'vscode'
-import type { SolScopeTransaction } from '@solscope/core'
+import type { LyktaTransaction } from '@lykta/core'
 
 /**
  * CPI Graph WebView panel.
@@ -12,7 +12,7 @@ export class CpiGraphPanel {
   private readonly _panel: vscode.WebviewPanel
   private _disposables: vscode.Disposable[] = []
 
-  public static createOrShow(extensionUri: vscode.Uri, tx: SolScopeTransaction): void {
+  public static createOrShow(extensionUri: vscode.Uri, tx: LyktaTransaction): void {
     const column = vscode.window.activeTextEditor?.viewColumn ?? vscode.ViewColumn.One
 
     if (CpiGraphPanel.currentPanel) {
@@ -22,8 +22,8 @@ export class CpiGraphPanel {
     }
 
     const panel = vscode.window.createWebviewPanel(
-      'solscope.cpiGraph',
-      `SolScope — ${tx.signature.slice(0, 8)}…`,
+      'lykta.cpiGraph',
+      `Lykta — ${tx.signature.slice(0, 8)}…`,
       column,
       {
         enableScripts: true,
@@ -36,18 +36,18 @@ export class CpiGraphPanel {
     CpiGraphPanel.currentPanel = new CpiGraphPanel(panel, tx)
   }
 
-  private constructor(panel: vscode.WebviewPanel, tx: SolScopeTransaction) {
+  private constructor(panel: vscode.WebviewPanel, tx: LyktaTransaction) {
     this._panel = panel
     this._update(tx)
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables)
   }
 
-  private _update(tx: SolScopeTransaction): void {
-    this._panel.title = `SolScope — ${tx.signature.slice(0, 8)}…`
+  private _update(tx: LyktaTransaction): void {
+    this._panel.title = `Lykta — ${tx.signature.slice(0, 8)}…`
     this._panel.webview.html = this._getHtml(tx)
   }
 
-  private _getHtml(tx: SolScopeTransaction): string {
+  private _getHtml(tx: LyktaTransaction): string {
     const status = tx.success ? '✓ Success' : '✗ Failed'
     const statusColor = tx.success ? '#4ade80' : '#f87171'
 
@@ -58,7 +58,7 @@ export class CpiGraphPanel {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SolScope CPI Graph</title>
+  <title>Lykta CPI Graph</title>
   <style>
     body { font-family: var(--vscode-font-family); color: var(--vscode-foreground); background: var(--vscode-editor-background); padding: 16px; }
     h2 { color: ${statusColor}; }

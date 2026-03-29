@@ -36,13 +36,15 @@ describe('Helius devnet RPC', () => {
       commitment: 'confirmed',
     })
 
+    // console.log(JSON.stringify(tx, null, 2))
+
     expect(tx).not.toBeNull()
     expect(tx?.slot).toBeGreaterThan(0)
     expect(typeof tx?.meta?.fee).toBe('number')
     expect(tx?.transaction).toBeDefined()
   })
 
-  it('transaction has the expected shape for SolScope', async () => {
+  it('transaction has the expected shape for Lykta', async () => {
     const tx = await connection.getTransaction(sig, {
       maxSupportedTransactionVersion: 0,
       commitment: 'confirmed',

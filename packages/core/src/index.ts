@@ -1,7 +1,7 @@
-// @solscope/core — public API surface
-// Everything exported here is the contract consumed by @solscope/cli, @solscope/vscode, and @solscope/litesvm.
+// @lykta/core — public API surface
+// Everything exported here is the contract consumed by @lykta/cli, @lykta/vscode, and @lykta/litesvm.
 
-export type { CpiNode, SolScopeTransaction, AccountDiff, CuUsage, SolScopeError } from './types.js'
+export type { CpiNode, LyktaTransaction, AccountDiff, CuUsage, LyktaError } from './types.js'
 export { fetchTransaction } from './fetch.js'
 export { buildCpiTree } from './cpi.js'
 export { extractAccountDiffs } from './diff.js'

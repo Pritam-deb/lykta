@@ -59,7 +59,7 @@ export interface CuUsage {
 }
 
 /** Decoded error from a failed transaction */
-export interface SolScopeError {
+export interface LyktaError {
   /** Raw error code as reported by the runtime */
   code: number | string
   /** Program that threw the error */
@@ -72,8 +72,8 @@ export interface SolScopeError {
   suggestion?: string
 }
 
-/** The fully-enriched transaction object produced by @solscope/core. */
-export interface SolScopeTransaction {
+/** The fully-enriched transaction object produced by @lykta/core. */
+export interface LyktaTransaction {
   /** Transaction signature */
   signature: string
   /** Slot the transaction was confirmed in */
@@ -93,7 +93,7 @@ export interface SolScopeTransaction {
   /** Total compute units consumed across the transaction */
   totalCu: number
   /** Decoded error (only present when success is false) */
-  error?: SolScopeError
+  error?: LyktaError
   /** Raw transaction response from the RPC */
   raw: VersionedTransactionResponse
 }

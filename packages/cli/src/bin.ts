@@ -5,8 +5,8 @@ import { diffCommand } from './commands/diff.js'
 import { errorCommand } from './commands/error.js'
 
 program
-  .name('solscope')
-  .description('Developer observability for Solana — inspect any transaction from your terminal.')
+  .name('lykta')
+  .description('Light inside every transaction — inspect any Solana transaction from your terminal.')
   .version('0.1.0')
 
 program.addCommand(inspectCommand)

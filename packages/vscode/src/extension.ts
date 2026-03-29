@@ -1,11 +1,11 @@
 import * as vscode from 'vscode'
 import { Connection } from '@solana/web3.js'
-import { fetchTransaction } from '@solscope/core'
+import { fetchTransaction } from '@lykta/core'
 import { CpiGraphPanel } from './panels/CpiGraphPanel.js'
 
 export function activate(context: vscode.ExtensionContext): void {
   // Command: inspect a transaction by signature (entry point for all panels)
-  const inspectCmd = vscode.commands.registerCommand('solscope.inspectTransaction', async () => {
+  const inspectCmd = vscode.commands.registerCommand('lykta.inspectTransaction', async () => {
     const signature = await vscode.window.showInputBox({
       prompt: 'Enter transaction signature',
       placeHolder: '5KtP4R…',
@@ -14,11 +14,11 @@ export function activate(context: vscode.ExtensionContext): void {
 
     if (!signature) return
 
-    const config = vscode.workspace.getConfiguration('solscope')
+    const config = vscode.workspace.getConfiguration('lykta')
     const rpcUrl = config.get<string>('rpcUrl') ?? 'https://api.devnet.solana.com'
 
     await vscode.window.withProgress(
-      { location: vscode.ProgressLocation.Notification, title: 'SolScope: Fetching transaction…' },
+      { location: vscode.ProgressLocation.Notification, title: 'Lykta: Fetching transaction…' },
       async () => {
         try {
           const connection = new Connection(rpcUrl, 'confirmed')
@@ -28,7 +28,7 @@ export function activate(context: vscode.ExtensionContext): void {
           CpiGraphPanel.createOrShow(context.extensionUri, tx)
         } catch (err) {
           vscode.window.showErrorMessage(
-            `SolScope: ${err instanceof Error ? err.message : String(err)}`,
+            `Lykta: ${err instanceof Error ? err.message : String(err)}`,
           )
         }
       },
