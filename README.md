@@ -8,12 +8,12 @@ No custom RPC. No browser required. Paste any transaction signature — mainnet,
 
 ## Packages
 
-| Package | Description |
-|---|---|
-| [`@solscope/core`](./packages/core) | Transaction decode engine, CPI tree builder, account diff, CU analyzer, error explainer |
-| [`@solscope/cli`](./packages/cli) | `npx solscope inspect \| diff \| error <signature>` |
-| [`@solscope/vscode`](./packages/vscode) | VS Code extension — CPI graph, account diff, CU flamegraph, error explanation panels |
-| [`@solscope/litesvm`](./packages/litesvm) | LiteSVM wrapper with enhanced error output for tests |
+| Package                                   | Description                                                                             |
+| ----------------------------------------- | --------------------------------------------------------------------------------------- |
+| [`@solscope/core`](./packages/core)       | Transaction decode engine, CPI tree builder, account diff, CU analyzer, error explainer |
+| [`@solscope/cli`](./packages/cli)         | `npx solscope inspect \| diff \| error <signature>`                                     |
+| [`@solscope/vscode`](./packages/vscode)   | VS Code extension — CPI graph, account diff, CU flamegraph, error explanation panels    |
+| [`@solscope/litesvm`](./packages/litesvm) | LiteSVM wrapper with enhanced error output for tests                                    |
 
 ---
 
@@ -72,7 +72,7 @@ if (!result.success) {
 ### Setup
 
 ```bash
-git clone https://github.com/your-org/solscope
+git clone https://github.com/pritam-deb/solscope
 cd solscope
 pnpm install
 pnpm build
@@ -167,6 +167,7 @@ Create `solscope.config.json` in your project root:
 ```
 
 Or pass flags directly:
+
 ```bash
 solscope inspect <sig> --rpc https://your-rpc.com
 solscope inspect <sig> --cluster mainnet
@@ -176,10 +177,10 @@ solscope inspect <sig> --cluster mainnet
 
 Open Settings (`Cmd+,`) and search for **SolScope**:
 
-| Setting | Default | Description |
-|---|---|---|
-| `solscope.rpcUrl` | `https://api.devnet.solana.com` | RPC endpoint |
-| `solscope.cluster` | `devnet` | Cluster shorthand (`mainnet \| devnet \| localnet \| custom`) |
+| Setting            | Default                         | Description                                                   |
+| ------------------ | ------------------------------- | ------------------------------------------------------------- |
+| `solscope.rpcUrl`  | `https://api.devnet.solana.com` | RPC endpoint                                                  |
+| `solscope.cluster` | `devnet`                        | Cluster shorthand (`mainnet \| devnet \| localnet \| custom`) |
 
 Claude API key for AI error suggestions: set `ANTHROPIC_API_KEY` in your shell environment, or configure it in VS Code settings (stored in SecretStorage, never in plaintext).
 
@@ -187,13 +188,13 @@ Claude API key for AI error suggestions: set `ANTHROPIC_API_KEY` in your shell e
 
 ## Competitive positioning
 
-| Tool | Where it works | CPI graph | Account diff | Per-instruction CU | VS Code | Test integration |
-|---|---|---|---|---|---|---|
-| **SolScope** | Any tx, anywhere | ✅ Interactive | ✅ Full data diff | ✅ Flamegraph | ✅ Extension | ✅ LiteSVM wrapper |
-| Helius Orb | Web browser | ❌ Flat list | ❌ Balance only | ❌ | ❌ | ❌ |
-| Seer | Custom RPC required | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Surfpool Studio | Local env only | ❌ | ✅ Byte-level | ❌ | ❌ | ❌ |
-| Phalcon | Web browser | ✅ Multi-level | ❌ Balance only | ❌ | ❌ | ❌ |
+| Tool            | Where it works      | CPI graph      | Account diff      | Per-instruction CU | VS Code      | Test integration   |
+| --------------- | ------------------- | -------------- | ----------------- | ------------------ | ------------ | ------------------ |
+| **SolScope**    | Any tx, anywhere    | ✅ Interactive | ✅ Full data diff | ✅ Flamegraph      | ✅ Extension | ✅ LiteSVM wrapper |
+| Helius Orb      | Web browser         | ❌ Flat list   | ❌ Balance only   | ❌                 | ❌           | ❌                 |
+| Seer            | Custom RPC required | ❌             | ❌                | ❌                 | ❌           | ❌                 |
+| Surfpool Studio | Local env only      | ❌             | ✅ Byte-level     | ❌                 | ❌           | ❌                 |
+| Phalcon         | Web browser         | ✅ Multi-level | ❌ Balance only   | ❌                 | ❌           | ❌                 |
 
 ---
 
