@@ -2,7 +2,8 @@
 // Everything exported here is the contract consumed by @lykta/cli, @lykta/vscode, and @lykta/litesvm.
 
 export type { CpiNode, LyktaTransaction, AccountDiff, CuUsage, LyktaError } from './types.js'
-export { fetchTransaction } from './fetch.js'
+export { fetchRawTransaction, fetchTransaction } from './fetch.js'
+export { resolveAllAccountKeys } from './accounts.js'
 export { buildCpiTree } from './cpi.js'
 export { extractAccountDiffs } from './diff.js'
 export { parseCuUsage } from './compute.js'
