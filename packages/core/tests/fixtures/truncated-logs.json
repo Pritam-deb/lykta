@@ -1,0 +1,57 @@
+{
+  "_comment": "Synthetic tx where the validator truncated logs mid-execution. The outer Jupiter frame and its Orca child frame are still open when 'Log truncated' appears. Both CpiNodes should be marked logsTruncated=true. The tx succeeded on-chain (err=null) — truncation only means logs were cut, not that execution failed.",
+  "slot": 123456901,
+  "blockTime": 1700001100,
+  "transaction": {
+    "message": {
+      "accountKeys": [
+        "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4",
+        "ComputeBudget111111111111111111111111111111"
+      ],
+      "instructions": [
+        {
+          "programIdIndex": 2,
+          "accounts": [],
+          "data": "AwBAnQMA"
+        },
+        {
+          "programIdIndex": 1,
+          "accounts": [0],
+          "data": "7ZNkoQAAAAAA"
+        }
+      ],
+      "recentBlockhash": "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d"
+    },
+    "signatures": ["5TruncatedLogs11111111111111111111111111111111111"]
+  },
+  "meta": {
+    "err": null,
+    "fee": 5000,
+    "preBalances":  [1000000000, 1, 1],
+    "postBalances": [999995000, 1, 1],
+    "preTokenBalances": [],
+    "postTokenBalances": [],
+    "logMessages": [
+      "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+      "Program ComputeBudget111111111111111111111111111111 success",
+      "Program JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4 invoke [1]",
+      "Program log: Instruction: Route",
+      "Program whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc invoke [2]",
+      "Program log: Instruction: Swap",
+      "Log truncated"
+    ],
+    "innerInstructions": [
+      {
+        "index": 1,
+        "instructions": [
+          {
+            "programIdIndex": 1,
+            "accounts": [0],
+            "data": "AA=="
+          }
+        ]
+      }
+    ]
+  }
+}

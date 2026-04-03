@@ -2,7 +2,10 @@ import { createHash } from 'crypto'
 import type { Idl } from '@coral-xyz/anchor'
 import { BorshReader, readField } from './borsh.js'
 import { KNOWN_PROGRAMS } from './registry.js'
-import type { CpiNode } from './types.js'
+import type { CpiNode, LabeledAccount, DecodedInstruction } from './types.js'
+
+// Re-export so existing consumers of `import { … } from './decode.js'` continue to work.
+export type { LabeledAccount, DecodedInstruction }
 
 // ── Derived types (avoid deep package imports) ────────────────────────────────
 
@@ -17,45 +20,6 @@ type IdlInstructionAccount = {
 type IdlInstructionAccounts = {
   name: string
   accounts: IdlInstructionAccount[]
-}
-
-// ── Public output types ───────────────────────────────────────────────────────
-
-/**
- * A single account entry with its IDL-provided label merged with its
- * runtime address from the transaction.
- */
-export interface LabeledAccount {
-  /** Human-readable name from the IDL (e.g. "authority", "tokenAccount") */
-  name: string
-  /** On-chain address (base58) */
-  address: string
-  writable: boolean
-  signer: boolean
-}
-
-/**
- * The fully-decoded representation of one CPI instruction node.
- *
- * When an IDL match is found, `name`, `args`, and `accounts` are populated.
- * When no IDL is available or the discriminator is not recognised, the node
- * falls back to raw hex so no information is lost.
- */
-export interface DecodedInstruction {
-  /** Instruction name from the IDL, or null when no match was found. */
-  name: string | null
-  /** Decoded Borsh arguments keyed by field name, or null on fallback. */
-  args: Record<string, unknown> | null
-  /** Accounts in index order with IDL labels merged in. */
-  accounts: LabeledAccount[]
-  /** Hex-encoded full instruction data (useful for debugging). */
-  rawHex: string
-  /** Hex-encoded 8-byte discriminator prefix. */
-  discriminatorHex: string
-  /** True when the discriminator matched an IDL instruction. */
-  matched: boolean
-  /** The underlying CpiNode (mutated in-place with name/args/programName). */
-  node: CpiNode
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────

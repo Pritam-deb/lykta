@@ -91,6 +91,41 @@ export interface TokenDiff {
   uiDelta: string
 }
 
+/**
+ * A single account entry with its IDL-provided label merged with its
+ * runtime address from the transaction.
+ */
+export interface LabeledAccount {
+  /** Human-readable name from the IDL (e.g. "authority", "tokenAccount") */
+  name: string
+  /** On-chain address (base58) */
+  address: string
+  writable: boolean
+  signer: boolean
+}
+
+/**
+ * The fully-decoded representation of one CPI instruction node.
+ * When an IDL match is found, `name`, `args`, and `accounts` are populated.
+ * When no IDL is available the node falls back to raw hex.
+ */
+export interface DecodedInstruction {
+  /** Instruction name from the IDL, or null when no match was found. */
+  name: string | null
+  /** Decoded Borsh arguments keyed by field name, or null on fallback. */
+  args: Record<string, unknown> | null
+  /** Accounts in index order with IDL labels merged in. */
+  accounts: LabeledAccount[]
+  /** Hex-encoded full instruction data (useful for debugging). */
+  rawHex: string
+  /** Hex-encoded 8-byte discriminator prefix. */
+  discriminatorHex: string
+  /** True when the discriminator matched an IDL instruction. */
+  matched: boolean
+  /** The underlying CpiNode (mutated in-place with name/args/programName). */
+  node: CpiNode
+}
+
 /** Decoded error from a failed transaction */
 export interface LyktaError {
   /** Raw error code as reported by the runtime */
@@ -119,9 +154,13 @@ export interface LyktaTransaction {
   fee: number
   /** Decoded CPI call tree */
   cpiTree: CpiNode[]
-  /** Account state diffs */
+  /** Flat list of decoded instructions in tree-traversal order */
+  decodedInstructions: DecodedInstruction[]
+  /** Account state diffs (lamport-level) */
   accountDiffs: AccountDiff[]
-  /** Per-instruction compute unit breakdown */
+  /** SPL token balance changes with BigInt-precise deltas */
+  tokenDiffs: TokenDiff[]
+  /** Per-instruction compute unit breakdown (top-level frames only) */
   cuUsage: CuUsage[]
   /** Total compute units consumed across the transaction */
   totalCu: number

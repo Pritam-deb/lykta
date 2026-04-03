@@ -115,8 +115,15 @@ export function parseCpiTree(logMessages: string[]): CpiNode[] {
  * Parses the transaction's inner instructions into a nested CPI call tree.
  * Handles both legacy Message and MessageV0 (versioned transactions).
  * Top-level instructions sit at depth 0; each inner instruction bumps depth by 1.
+ *
+ * @param resolvedKeys - Optional pre-resolved account key list (base58 strings).
+ *   When provided (e.g. from `resolveAllAccountKeys` with ALT expansion) this
+ *   replaces the static key list so ALT-referenced accounts are named correctly.
  */
-export function buildCpiTree(tx: VersionedTransactionResponse): CpiNode[] {
+export function buildCpiTree(
+  tx: VersionedTransactionResponse,
+  resolvedKeys?: string[],
+): CpiNode[] {
   const message = tx.transaction.message
   const isV0 = 'staticAccountKeys' in message
 
@@ -124,9 +131,9 @@ export function buildCpiTree(tx: VersionedTransactionResponse): CpiNode[] {
   const toStr = (k: unknown): string =>
     typeof k === 'string' ? k : (k as { toBase58(): string }).toBase58()
 
-  const accountKeys = isV0
+  const accountKeys = resolvedKeys ?? (isV0
     ? (message as MessageV0).staticAccountKeys.map(toStr)
-    : (message as Message).accountKeys.map(toStr)
+    : (message as Message).accountKeys.map(toStr))
 
   const failed = tx.meta?.err !== null
   const innerInstructions = tx.meta?.innerInstructions ?? []

@@ -1,9 +1,7 @@
 import { Connection } from '@solana/web3.js'
 import type { VersionedTransactionResponse } from '@solana/web3.js'
 import type { LyktaTransaction } from './types.js'
-import { buildCpiTree } from './cpi.js'
-import { extractAccountDiffs } from './diff.js'
-import { parseCuUsage } from './compute.js'
+import { decodeTransactionFromRaw } from './transaction.js'
 
 /**
  * Fetches the raw RPC transaction response without running any analysis.
@@ -37,31 +35,15 @@ export async function fetchRawTransaction(
 
 /**
  * Fetches and fully decodes a transaction by signature.
- * This is the primary entry point for all Lykta analysis.
+ *
+ * @deprecated Use `decodeTransaction` from `./transaction.js` instead — it runs
+ * the full 9-step pipeline including IDL resolution, token diffs, and error
+ * resolution. This wrapper is kept for backward compatibility only.
  */
 export async function fetchTransaction(
   signature: string,
   connection: Connection,
 ): Promise<LyktaTransaction> {
-  const vtx = await fetchRawTransaction(signature, connection)
-
-  const cpiTree = buildCpiTree(vtx)
-  const accountDiffs = await extractAccountDiffs(vtx, connection)
-  const cuUsage = parseCuUsage(vtx)
-  const totalCu = cuUsage.reduce((sum, cu) => sum + cu.consumed, 0)
-  const success = vtx.meta?.err === null
-
-  return {
-    signature,
-    slot: vtx.slot,
-    blockTime: vtx.blockTime ?? null,
-    success,
-    fee: vtx.meta?.fee ?? 0,
-    cpiTree,
-    accountDiffs,
-    cuUsage,
-    totalCu,
-    // error is omitted here; populate it by calling explainError() on the result
-    raw: vtx,
-  }
+  const raw = await fetchRawTransaction(signature, connection)
+  return decodeTransactionFromRaw(raw, connection)
 }

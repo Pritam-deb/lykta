@@ -1,0 +1,37 @@
+{
+  "_comment": "Synthetic tx that ran out of compute budget. meta.err is { InstructionError: [0, 'ComputationalBudgetExceeded'] } — a named runtime string error (tier-1 in resolveError). The consumed line shows consumed === limit, so isOverBudget=true. resolveError should resolve the name from SYSTEM_ERRORS.",
+  "slot": 123456902,
+  "blockTime": 1700001200,
+  "transaction": {
+    "message": {
+      "accountKeys": [
+        "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+        "HeavyProg1111111111111111111111111111111111111"
+      ],
+      "instructions": [
+        {
+          "programIdIndex": 1,
+          "accounts": [0],
+          "data": "AQIDBA=="
+        }
+      ],
+      "recentBlockhash": "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d"
+    },
+    "signatures": ["5CUExceeded111111111111111111111111111111111111111"]
+  },
+  "meta": {
+    "err": { "InstructionError": [0, "ComputationalBudgetExceeded"] },
+    "fee": 5000,
+    "preBalances":  [1000000000, 1],
+    "postBalances": [999995000, 1],
+    "preTokenBalances": [],
+    "postTokenBalances": [],
+    "logMessages": [
+      "Program HeavyProg1111111111111111111111111111111111111 invoke [1]",
+      "Program log: Starting heavy computation...",
+      "Program HeavyProg1111111111111111111111111111111111111 consumed 200000 of 200000 compute units",
+      "Program HeavyProg1111111111111111111111111111111111111 failed: exceeded maximum number of instructions allowed (200000) at instruction #59812"
+    ],
+    "innerInstructions": []
+  }
+}

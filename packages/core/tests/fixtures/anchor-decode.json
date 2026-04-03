@@ -1,0 +1,41 @@
+{
+  "_comment": "Synthetic Anchor program tx — instruction data starts with SHA256('global:deposit')[0..8] followed by a u64 LE amount of 1_000_000. Tests IDL-based discriminator matching and Borsh arg decode offline.",
+  "_discriminator": "f223c68952e1f2b6",
+  "_instructionName": "deposit",
+  "_amount": 1000000,
+  "slot": 123456900,
+  "blockTime": 1700001000,
+  "transaction": {
+    "message": {
+      "accountKeys": [
+        "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+        "VaultAccount1111111111111111111111111111111111",
+        "AnchorProg11111111111111111111111111111111111"
+      ],
+      "instructions": [
+        {
+          "programIdIndex": 2,
+          "accounts": [0, 1],
+          "data": "8iPGiVLh8rZAQg8AAAAAAA=="
+        }
+      ],
+      "recentBlockhash": "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d"
+    },
+    "signatures": ["5AnchorDecode111111111111111111111111111111111111"]
+  },
+  "meta": {
+    "err": null,
+    "fee": 5000,
+    "preBalances":  [1000000000, 0, 1],
+    "postBalances": [999995000, 1000000, 1],
+    "preTokenBalances": [],
+    "postTokenBalances": [],
+    "logMessages": [
+      "Program AnchorProg11111111111111111111111111111111111 invoke [1]",
+      "Program log: Instruction: deposit",
+      "Program AnchorProg11111111111111111111111111111111111 consumed 8200 of 200000 compute units",
+      "Program AnchorProg11111111111111111111111111111111111 success"
+    ],
+    "innerInstructions": []
+  }
+}
