@@ -62,6 +62,33 @@ export interface CuUsage {
   limit: number
   /** Percentage of limit consumed (0–100) */
   percentUsed: number
+  /** True when consumed >= limit (instruction hit the compute ceiling) */
+  isOverBudget?: boolean
+}
+
+/**
+ * Per-account SPL token balance change for a single transaction.
+ * Uses BigInt for the raw `delta` so no precision is lost on large amounts.
+ */
+export interface TokenDiff {
+  /** Index into the transaction's account keys array */
+  accountIndex: number
+  /** On-chain address of the token account (base58) */
+  address: string
+  /** Mint address of the token */
+  mint: string
+  /** Owner wallet address */
+  owner: string
+  /** Decimal precision of the mint */
+  decimals: number
+  /** Raw pre-balance in base units */
+  preAmount: bigint
+  /** Raw post-balance in base units */
+  postAmount: bigint
+  /** Net change in base units — exact BigInt arithmetic, never loses precision */
+  delta: bigint
+  /** Human-readable signed decimal string, e.g. "-5.000000" or "5.000000" */
+  uiDelta: string
 }
 
 /** Decoded error from a failed transaction */
