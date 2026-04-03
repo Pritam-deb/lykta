@@ -1,6 +1,116 @@
 import type { Message, MessageV0, VersionedTransactionResponse } from '@solana/web3.js'
 import type { CpiNode } from './types.js'
 
+// ── Log-line patterns ────────────────────────────────────────────────────────
+
+const INVOKE_RE = /^Program (\S+) invoke \[(\d+)\]$/
+const SUCCESS_RE = /^Program (\S+) success$/
+const FAILED_RE = /^Program (\S+) failed: (.+)$/
+const CONSUMED_RE = /^Program (\S+) consumed (\d+) of (\d+) compute units$/
+
+/**
+ * Reconstructs the CPI call tree purely from `meta.logMessages`.
+ *
+ * Unlike `buildCpiTree()`, which relies on the structured `innerInstructions`
+ * block from the RPC, this parser works entirely from the human-readable log
+ * lines emitted by the Solana runtime.  The two approaches are complementary:
+ * `buildCpiTree` gives you exact account lists and instruction data; this
+ * function gives you CU consumption per frame and works even when inner
+ * instructions are stripped by the RPC.
+ *
+ * Recognised log-line formats:
+ *   `Program <id> invoke [<depth>]`               → open a new frame
+ *   `Program <id> consumed <X> of <Y> compute units` → attach CU info
+ *   `Program <id> success`                         → close frame (ok)
+ *   `Program <id> failed: <reason>`               → close frame (failed)
+ *   `Log truncated`                                → mark remaining frames
+ *
+ * Edge cases:
+ * - **Truncated logs**: when the validator emits `"Log truncated"` all
+ *   still-open frames are marked `logsTruncated: true` and flushed.
+ * - **Unclosed frames**: malformed or synthetic log arrays that end while
+ *   frames are still open are drained bottom-up into the tree.
+ *
+ * @param logMessages - `tx.meta.logMessages` from the RPC response.
+ * @returns Nested `CpiNode[]` in the same shape as `buildCpiTree()`.
+ */
+export function parseCpiTree(logMessages: string[]): CpiNode[] {
+  const roots: CpiNode[] = []
+  /** Stack of currently open (not yet closed) frames, outermost first. */
+  const stack: CpiNode[] = []
+
+  /** Pops the innermost frame and attaches it to its parent or roots. */
+  function closeTop(): void {
+    const node = stack.pop()!
+    if (stack.length === 0) {
+      roots.push(node)
+    } else {
+      stack[stack.length - 1]!.children.push(node)
+    }
+  }
+
+  for (const line of logMessages) {
+    // ── Truncation marker ──────────────────────────────────────────────────
+    if (line === 'Log truncated') {
+      for (const node of stack) {
+        node.logsTruncated = true
+      }
+      // Drain inner → outer so the tree structure is preserved
+      while (stack.length > 0) closeTop()
+      continue
+    }
+
+    // ── Program X invoke [N] ───────────────────────────────────────────────
+    const invokeMatch = INVOKE_RE.exec(line)
+    if (invokeMatch) {
+      const node: CpiNode = {
+        programId: invokeMatch[1]!,
+        accounts: [],
+        data: '',
+        depth: stack.length,  // depth equals current stack height before push
+        children: [],
+        failed: false,
+      }
+      stack.push(node)
+      continue
+    }
+
+    // ── Program X consumed N of M compute units ────────────────────────────
+    const consumedMatch = CONSUMED_RE.exec(line)
+    if (consumedMatch !== null && stack.length > 0) {
+      const top = stack[stack.length - 1]!
+      top.computeUnits = {
+        consumed: parseInt(consumedMatch[2]!, 10),
+        limit:    parseInt(consumedMatch[3]!, 10),
+      }
+      continue
+    }
+
+    // ── Program X success ─────────────────────────────────────────────────
+    if (SUCCESS_RE.test(line)) {
+      if (stack.length > 0) closeTop()
+      continue
+    }
+
+    // ── Program X failed: <reason> ────────────────────────────────────────
+    const failedMatch = FAILED_RE.exec(line)
+    if (failedMatch) {
+      if (stack.length > 0) {
+        const top = stack[stack.length - 1]!
+        top.failed = true
+        top.failReason = failedMatch[2]!
+        closeTop()
+      }
+      continue
+    }
+  }
+
+  // Drain any unclosed frames (malformed / truncated without marker)
+  while (stack.length > 0) closeTop()
+
+  return roots
+}
+
 /**
  * Parses the transaction's inner instructions into a nested CPI call tree.
  * Handles both legacy Message and MessageV0 (versioned transactions).

@@ -20,6 +20,12 @@ export interface CpiNode {
   children: CpiNode[]
   /** Whether this instruction failed */
   failed: boolean
+  /** Reason string from "Program X failed: <reason>" log line (log-parsed trees only) */
+  failReason?: string
+  /** Compute unit consumption for this frame (only present when parsed from logs) */
+  computeUnits?: { consumed: number; limit: number }
+  /** True when the validator truncated logs before this frame completed */
+  logsTruncated?: boolean
 }
 
 /** Pre/post state diff for a single account touched by the transaction */

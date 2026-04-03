@@ -4,7 +4,7 @@
 export type { CpiNode, LyktaTransaction, AccountDiff, CuUsage, LyktaError } from './types.js'
 export { fetchRawTransaction, fetchTransaction } from './fetch.js'
 export { resolveAllAccountKeys } from './accounts.js'
-export { buildCpiTree } from './cpi.js'
+export { buildCpiTree, parseCpiTree } from './cpi.js'
 export { extractAccountDiffs } from './diff.js'
 export { parseCuUsage } from './compute.js'
 export { fetchIdl, fetchIdlsForPrograms, decodeInstruction, resolveIdl } from './idl.js'
