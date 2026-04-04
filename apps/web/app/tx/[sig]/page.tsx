@@ -1,8 +1,11 @@
+import { cache } from "react";
 import { Connection } from "@solana/web3.js";
 import { decodeTransaction } from "@lykta/core";
+import type { Metadata } from "next";
 import TxTabs from "@/components/TxTabs";
 import TxStatusBanner from "@/components/TxStatusBanner";
 import ErrorCard from "@/components/ErrorCard";
+import TxHeader, { type Cluster } from "@/components/TxHeader";
 
 function bigintReplacer(_key: string, value: unknown) {
   if (typeof value === "bigint") return value.toString() + "n";
@@ -25,24 +28,72 @@ function serializeValue(v: unknown): unknown {
   return v;
 }
 
-interface Props {
-  params: { sig: string };
+function rpcUrlForCluster(cluster: Cluster): string {
+  if (cluster === "devnet") {
+    return process.env.HELIUS_RPC_URL_DEVNET ?? "https://api.devnet.solana.com";
+  }
+  if (cluster === "testnet") {
+    return "https://api.testnet.solana.com";
+  }
+  const url = process.env.HELIUS_RPC_URL;
+  if (!url) throw new Error("HELIUS_RPC_URL is not set. Add it to .env.local or your Vercel environment variables.");
+  return url;
 }
 
-export default async function TxPage({ params }: Props) {
-  const rpcUrl = process.env.HELIUS_RPC_URL;
-  if (!rpcUrl) {
-    throw new Error(
-      "HELIUS_RPC_URL is not set. Add it to .env.local or your Vercel environment variables."
-    );
-  }
+// Deduplicate the RPC call between generateMetadata and the page component
+const getTransaction = cache(async (sig: string, cluster: Cluster) => {
+  const connection = new Connection(rpcUrlForCluster(cluster), "confirmed");
+  return decodeTransaction(sig, connection);
+});
 
-  const connection = new Connection(rpcUrl, "confirmed");
+interface Props {
+  params: { sig: string };
+  searchParams: { cluster?: string };
+}
+
+function parseCluster(raw: string | undefined): Cluster {
+  if (raw === "devnet" || raw === "testnet") return raw;
+  return "mainnet-beta";
+}
+
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
+  const cluster = parseCluster(searchParams.cluster);
+  const shortSig = `${params.sig.slice(0, 8)}…`;
+
+  try {
+    const tx = await getTransaction(params.sig, cluster);
+    const status = tx.success ? "Success" : "Failed";
+    const feeSol = (tx.fee / 1_000_000_000).toFixed(6);
+    const ixCount = tx.decodedInstructions.length;
+    const title = `Tx ${shortSig} — ${status} · Lykta`;
+    const description = `Slot ${tx.slot} · Fee ${feeSol} SOL · ${ixCount} instruction${ixCount !== 1 ? "s" : ""}`;
+
+    return {
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        type: "website",
+      },
+      twitter: {
+        card: "summary",
+        title,
+        description,
+      },
+    };
+  } catch {
+    return { title: `Tx ${shortSig} — Lykta` };
+  }
+}
+
+export default async function TxPage({ params, searchParams }: Props) {
+  const cluster = parseCluster(searchParams.cluster);
 
   let content: React.ReactNode;
 
   try {
-    const tx = await decodeTransaction(params.sig, connection);
+    const tx = await getTransaction(params.sig, cluster);
 
     const serializedTokenDiffs = tx.tokenDiffs.map((d) => ({
       accountIndex: d.accountIndex,
@@ -85,20 +136,23 @@ export default async function TxPage({ params }: Props) {
     );
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
+    const headline = message.includes("Transaction not found")
+      ? "Transaction not found"
+      : message.toLowerCase().includes("invalid") ||
+          message.toLowerCase().includes("base58")
+        ? "Invalid signature"
+        : "RPC error";
     content = (
-      <div className="rounded border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-        <p className="font-semibold">Failed to decode transaction</p>
-        <p className="mt-1 font-mono text-xs">{message}</p>
+      <div className="rounded border border-red-200 bg-red-50 p-4 text-sm">
+        <p className="font-semibold text-red-900">{headline}</p>
+        <p className="mt-1 font-mono text-xs text-red-700">{message}</p>
       </div>
     );
   }
 
   return (
     <main className="mx-auto flex max-w-5xl flex-col gap-6 p-8">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-bold">Transaction</h1>
-        <p className="break-all font-mono text-xs text-gray-500">{params.sig}</p>
-      </div>
+      <TxHeader sig={params.sig} cluster={cluster} />
       {content}
     </main>
   );
