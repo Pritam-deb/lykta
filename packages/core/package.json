@@ -2,13 +2,13 @@
   "name": "@lykta/core",
   "version": "0.1.0",
   "description": "Transaction decode engine, CPI graph builder, account diff, compute unit analyzer, and error explainer for Solana.",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.mts"
     }
   },
   "files": [

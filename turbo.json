@@ -4,13 +4,15 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["src/**", "tsconfig.json", "package.json"],
-      "outputs": ["dist/**"]
+      "inputs": ["src/**", "app/**", "components/**", "tsconfig.json", "package.json", "next.config.*"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
+      "env": ["HELIUS_RPC_URL"]
     },
     "dev": {
       "dependsOn": ["^build"],
       "persistent": true,
-      "cache": false
+      "cache": false,
+      "env": ["HELIUS_RPC_URL"]
     },
     "lint": {
       "dependsOn": ["^build"]
