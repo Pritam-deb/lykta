@@ -9,6 +9,22 @@ function bigintReplacer(_key: string, value: unknown) {
   return value;
 }
 
+// Recursively converts BigInt values to "<n>n" strings so the result
+// is safe to pass as a prop from a server component to a client component.
+function serializeValue(v: unknown): unknown {
+  if (typeof v === "bigint") return v.toString() + "n";
+  if (Array.isArray(v)) return v.map(serializeValue);
+  if (v !== null && typeof v === "object") {
+    return Object.fromEntries(
+      Object.entries(v as Record<string, unknown>).map(([k, val]) => [
+        k,
+        serializeValue(val),
+      ]),
+    );
+  }
+  return v;
+}
+
 interface Props {
   params: { sig: string };
 }
@@ -52,6 +68,13 @@ export default async function TxPage({ params }: Props) {
         <ErrorCard error={tx.error} />
         <TxTabs
           cpiTree={tx.cpiTree}
+          decodedInstructions={tx.decodedInstructions.map((ix) => ({
+            ...ix,
+            args:
+              ix.args !== null
+                ? (serializeValue(ix.args) as Record<string, unknown>)
+                : null,
+          }))}
           accountDiffs={tx.accountDiffs}
           tokenDiffs={serializedTokenDiffs}
           cuUsage={tx.cuUsage}
