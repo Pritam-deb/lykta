@@ -1,5 +1,6 @@
 import { Connection } from "@solana/web3.js";
 import { decodeTransaction } from "@lykta/core";
+import CpiGraph from "@/components/CpiGraph";
 
 function bigintReplacer(_key: string, value: unknown) {
   if (typeof value === "bigint") return value.toString() + "n";
@@ -25,9 +26,12 @@ export default async function TxPage({ params }: Props) {
   try {
     const tx = await decodeTransaction(params.sig, connection);
     content = (
-      <pre className="overflow-x-auto rounded border border-gray-200 bg-gray-950 p-4 text-xs leading-relaxed text-gray-100">
-        {JSON.stringify(tx, bigintReplacer, 2)}
-      </pre>
+      <>
+        <CpiGraph cpiTree={tx.cpiTree} />
+        <pre className="overflow-x-auto rounded border border-gray-200 bg-gray-950 p-4 text-xs leading-relaxed text-gray-100">
+          {JSON.stringify(tx, bigintReplacer, 2)}
+        </pre>
+      </>
     );
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
