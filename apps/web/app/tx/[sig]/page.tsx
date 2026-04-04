@@ -1,6 +1,6 @@
 import { Connection } from "@solana/web3.js";
 import { decodeTransaction } from "@lykta/core";
-import CpiGraph from "@/components/CpiGraph";
+import TxTabs from "@/components/TxTabs";
 
 function bigintReplacer(_key: string, value: unknown) {
   if (typeof value === "bigint") return value.toString() + "n";
@@ -25,13 +25,26 @@ export default async function TxPage({ params }: Props) {
 
   try {
     const tx = await decodeTransaction(params.sig, connection);
+
+    const serializedTokenDiffs = tx.tokenDiffs.map((d) => ({
+      accountIndex: d.accountIndex,
+      address:      d.address,
+      mint:         d.mint,
+      owner:        d.owner,
+      decimals:     d.decimals,
+      preAmount:    d.preAmount.toString(),
+      postAmount:   d.postAmount.toString(),
+      delta:        d.delta.toString(),
+      uiDelta:      d.uiDelta,
+    }));
+
     content = (
-      <>
-        <CpiGraph cpiTree={tx.cpiTree} />
-        <pre className="overflow-x-auto rounded border border-gray-200 bg-gray-950 p-4 text-xs leading-relaxed text-gray-100">
-          {JSON.stringify(tx, bigintReplacer, 2)}
-        </pre>
-      </>
+      <TxTabs
+        cpiTree={tx.cpiTree}
+        accountDiffs={tx.accountDiffs}
+        tokenDiffs={serializedTokenDiffs}
+        rawJson={JSON.stringify(tx, bigintReplacer, 2)}
+      />
     );
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
