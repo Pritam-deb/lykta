@@ -1,6 +1,8 @@
 import { Connection } from "@solana/web3.js";
 import { decodeTransaction } from "@lykta/core";
 import TxTabs from "@/components/TxTabs";
+import TxStatusBanner from "@/components/TxStatusBanner";
+import ErrorCard from "@/components/ErrorCard";
 
 function bigintReplacer(_key: string, value: unknown) {
   if (typeof value === "bigint") return value.toString() + "n";
@@ -39,12 +41,24 @@ export default async function TxPage({ params }: Props) {
     }));
 
     content = (
-      <TxTabs
-        cpiTree={tx.cpiTree}
-        accountDiffs={tx.accountDiffs}
-        tokenDiffs={serializedTokenDiffs}
-        rawJson={JSON.stringify(tx, bigintReplacer, 2)}
-      />
+      <>
+        <TxStatusBanner
+          success={tx.success}
+          fee={tx.fee}
+          slot={tx.slot}
+          blockTime={tx.blockTime}
+          totalCu={tx.totalCu}
+        />
+        <ErrorCard error={tx.error} />
+        <TxTabs
+          cpiTree={tx.cpiTree}
+          accountDiffs={tx.accountDiffs}
+          tokenDiffs={serializedTokenDiffs}
+          cuUsage={tx.cuUsage}
+          totalCu={tx.totalCu}
+          rawJson={JSON.stringify(tx, bigintReplacer, 2)}
+        />
+      </>
     );
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

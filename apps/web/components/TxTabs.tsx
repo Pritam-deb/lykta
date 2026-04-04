@@ -1,17 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import type { CpiNode, AccountDiff } from "@lykta/core";
+import type { CpiNode, AccountDiff, CuUsage } from "@lykta/core";
 import CpiGraph from "@/components/CpiGraph";
 import AccountDiffTable from "@/components/AccountDiff";
 import TokenDiffTable, { type SerializedTokenDiff } from "@/components/TokenDiff";
+import ComputeMeter from "@/components/ComputeMeter";
 
-type Tab = "cpi" | "accounts" | "tokens" | "raw";
+type Tab = "cpi" | "accounts" | "tokens" | "compute" | "raw";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "cpi",      label: "CPI Tree" },
   { id: "accounts", label: "Account Diffs" },
   { id: "tokens",   label: "Token Diffs" },
+  { id: "compute",  label: "Compute" },
   { id: "raw",      label: "Raw JSON" },
 ];
 
@@ -19,10 +21,19 @@ interface Props {
   cpiTree:      CpiNode[];
   accountDiffs: AccountDiff[];
   tokenDiffs:   SerializedTokenDiff[];
+  cuUsage:      CuUsage[];
+  totalCu:      number;
   rawJson:      string;
 }
 
-export default function TxTabs({ cpiTree, accountDiffs, tokenDiffs, rawJson }: Props) {
+export default function TxTabs({
+  cpiTree,
+  accountDiffs,
+  tokenDiffs,
+  cuUsage,
+  totalCu,
+  rawJson,
+}: Props) {
   const [active, setActive] = useState<Tab>("cpi");
 
   return (
@@ -54,6 +65,10 @@ export default function TxTabs({ cpiTree, accountDiffs, tokenDiffs, rawJson }: P
 
       {active === "tokens" && (
         <TokenDiffTable tokenDiffs={tokenDiffs} />
+      )}
+
+      {active === "compute" && (
+        <ComputeMeter cuUsage={cuUsage} totalCu={totalCu} />
       )}
 
       {active === "raw" && (
