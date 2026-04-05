@@ -27,6 +27,7 @@ export default function TxStatusBanner({
 
   return (
     <div
+      data-testid="tx-status-banner"
       className={[
         "flex flex-wrap items-center gap-x-6 gap-y-1 rounded border-l-4 px-4 py-3 text-sm",
         success
