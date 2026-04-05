@@ -18,6 +18,7 @@ export default function CpiNodeCard({ data }: NodeProps<CpiNodeData>) {
       <Handle type="target" position={Position.Top} />
 
       <div
+        data-testid="cpi-node"
         title={failed && cpiNode.failReason ? cpiNode.failReason : undefined}
         className={[
           "min-w-[160px] rounded bg-white px-3 py-2 shadow-md",

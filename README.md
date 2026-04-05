@@ -35,6 +35,38 @@ No custom RPC. No browser required. Paste any transaction signature — mainnet,
 
 ---
 
+## Web Dashboard
+
+Paste any Solana transaction signature into the URL and get a fully rendered multi-tab analysis instantly.
+
+```
+https://lykta.vercel.app/tx/<SIGNATURE>?cluster=devnet
+```
+
+**Example (devnet — Squads Protocol `create`):**
+```
+https://lykta.vercel.app/tx/2dFnV9p5XudD1y4yyKfKi8dJiQgKXvGcajigh9scnzunWDMiR9ieoHw6Ge19pu9oTq5LuBSddwQQYivhccQF8h4Y?cluster=devnet
+```
+
+### Tabs
+
+| Tab | What you see |
+|-----|-------------|
+| **CPI Tree** | Interactive ReactFlow graph of every cross-program invocation, color-coded by success/failure |
+| **Instructions** | Decoded instruction names and Borsh-parsed args for every Anchor program with an on-chain IDL |
+| **Account Diffs** | Pre/post lamport balances for every account touched by the transaction |
+| **Token Diffs** | SPL token balance changes with mint, owner, and UI-formatted delta |
+| **Compute** | Per-instruction compute unit consumption bar chart |
+| **Raw JSON** | Full decoded transaction object for copy-paste into scripts |
+
+### Shareable links
+
+Every URL is shareable as-is. The page generates dynamic Open Graph tags — paste the link into Slack or Twitter to see a preview with the transaction status, slot, fee, and instruction count.
+
+Supported clusters: `mainnet-beta` (default), `devnet`, `testnet`.
+
+---
+
 ## Quick Start
 
 ### CLI
