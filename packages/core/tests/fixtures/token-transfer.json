@@ -1,0 +1,78 @@
+{
+  "_comment": "Simulated USDC transfer: sender (index 1) loses 5 USDC, receiver (index 2) gains 5 USDC. Decimals = 6. Raw amounts: 100000000 → 95000000 and 0 → 5000000.",
+  "slot": 123456801,
+  "blockTime": 1700000200,
+  "transaction": {
+    "message": {
+      "accountKeys": [
+        "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+        "SndTokenAcc1111111111111111111111111111111111",
+        "RcvTokenAcc1111111111111111111111111111111111",
+        "BrG44HdsEhzapvs8bEqzvkq4egwevS2y3W5D5zMtWen",
+        "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+      ],
+      "instructions": [
+        {
+          "programIdIndex": 4,
+          "accounts": [1, 0, 2, 0],
+          "data": "g2GHEQkgzrqV"
+        }
+      ],
+      "recentBlockhash": "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d"
+    },
+    "signatures": ["5TokenTransfer1111111111111111111111111111111111"]
+  },
+  "meta": {
+    "err": null,
+    "fee": 5000,
+    "preBalances":  [1000000000, 2039280, 0, 0, 1],
+    "postBalances": [999995000,  2039280, 2039280, 0, 1],
+    "preTokenBalances": [
+      {
+        "accountIndex": 1,
+        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "uiTokenAmount": {
+          "amount": "100000000",
+          "decimals": 6,
+          "uiAmount": 100.0,
+          "uiAmountString": "100"
+        },
+        "owner": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+        "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+      }
+    ],
+    "postTokenBalances": [
+      {
+        "accountIndex": 1,
+        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "uiTokenAmount": {
+          "amount": "95000000",
+          "decimals": 6,
+          "uiAmount": 95.0,
+          "uiAmountString": "95"
+        },
+        "owner": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+        "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+      },
+      {
+        "accountIndex": 2,
+        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "uiTokenAmount": {
+          "amount": "5000000",
+          "decimals": 6,
+          "uiAmount": 5.0,
+          "uiAmountString": "5"
+        },
+        "owner": "BrG44HdsEhzapvs8bEqzvkq4egwevS2y3W5D5zMtWen",
+        "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+      }
+    ],
+    "logMessages": [
+      "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [1]",
+      "Program log: Instruction: TransferChecked",
+      "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 6200 of 200000 compute units",
+      "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success"
+    ],
+    "innerInstructions": []
+  }
+}

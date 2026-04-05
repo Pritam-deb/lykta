@@ -1,6 +1,7 @@
-import type { Connection } from '@solana/web3.js'
+import type { Connection, VersionedTransactionResponse } from '@solana/web3.js'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { LyktaError, LyktaTransaction } from './types.js'
+import { SYSTEM_ERRORS, SPL_TOKEN_ERRORS } from './registry.js'
 
 /** Known Anchor framework error codes → human-readable messages */
 const ANCHOR_ERRORS: Record<number, string> = {
@@ -22,6 +23,84 @@ const ANCHOR_ERRORS: Record<number, string> = {
   3004: 'AccountDidNotSerialize: Failed to serialize the account',
   3007: 'AccountNotMutable: The given account is not mutable',
   3008: 'AccountOwnedByWrongProgram: The given account is owned by a different program than expected',
+}
+
+/**
+ * Resolves the error from a failed `VersionedTransactionResponse` without requiring
+ * a `LyktaTransaction` wrapper or network calls.
+ *
+ * Resolution order for `{ InstructionError: [idx, detail] }` errors:
+ *  1. **System/runtime errors** — `detail` is a string → look up in `SYSTEM_ERRORS`
+ *  2. **Anchor framework errors** — `detail` is `{ Custom: N }` in range 100–3999
+ *  3. **SPL Token errors** — `detail` is `{ Custom: N }` → look up in `SPL_TOKEN_ERRORS`
+ *  4. **Unknown custom error** — falls back to `"Custom program error: 0xNNN"`
+ *
+ * The `programId` is extracted from the instruction at `idx` inside the transaction
+ * message, so no additional arguments are needed.
+ *
+ * A Claude API tier is intentionally omitted here — it will be wired up in Week 3.
+ */
+export function resolveError(tx: VersionedTransactionResponse): LyktaError | undefined {
+  const rawErr = tx.meta?.err
+  if (!rawErr) return undefined
+
+  const errObj = rawErr as Record<string, unknown>
+
+  // Transaction-level errors (not instruction-level) — e.g. "BlockhashNotFound"
+  if (!('InstructionError' in errObj)) {
+    const code = String(rawErr)
+    return { code, programId: 'unknown', message: code }
+  }
+
+  const [ixIndex, detail] = errObj['InstructionError'] as [number, unknown]
+
+  // Resolve programId from the failing instruction index
+  const message = tx.transaction.message
+  const toStr = (k: unknown): string =>
+    typeof k === 'string' ? k : (k as { toBase58(): string }).toBase58()
+  const accountKeys = 'staticAccountKeys' in message
+    ? message.staticAccountKeys.map(toStr)
+    : (message as { accountKeys: unknown[] }).accountKeys.map(toStr)
+  const ixList = 'compiledInstructions' in message
+    ? message.compiledInstructions
+    : (message as { instructions: { programIdIndex: number }[] }).instructions
+  const ixMeta  = ixList[ixIndex as number]
+  const programId = ixMeta ? (accountKeys[ixMeta.programIdIndex] ?? 'unknown') : 'unknown'
+
+  // ── Tier 1: named runtime/system error (detail is a string) ─────────────────
+  if (typeof detail === 'string') {
+    const sysMsg = SYSTEM_ERRORS.get(detail)
+    return { code: detail, programId, name: detail, message: sysMsg ?? detail }
+  }
+
+  // ── Custom error code (detail is { Custom: N }) ──────────────────────────────
+  if (typeof detail === 'object' && detail !== null && 'Custom' in detail) {
+    const code = (detail as { Custom: number }).Custom
+
+    // ── Tier 2: Anchor framework errors (100–3999) ────────────────────────────
+    const anchorMsg = ANCHOR_ERRORS[code]
+    if (anchorMsg) {
+      const name = anchorMsg.split(':')[0] ?? anchorMsg
+      return { code, programId, name, message: anchorMsg }
+    }
+
+    // ── Tier 3: SPL Token errors ──────────────────────────────────────────────
+    const splMsg = SPL_TOKEN_ERRORS.get(code)
+    if (splMsg) {
+      const name = splMsg.split(':')[0] ?? splMsg
+      return { code, programId, name, message: splMsg }
+    }
+
+    // Unrecognised custom code
+    return {
+      code,
+      programId,
+      message: `Custom program error: 0x${code.toString(16).toUpperCase()}`,
+    }
+  }
+
+  // Fallback: unknown error shape
+  return { code: String(detail), programId, message: String(rawErr) }
 }
 
 /**

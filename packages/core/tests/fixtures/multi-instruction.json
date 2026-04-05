@@ -1,0 +1,71 @@
+{
+  "_comment": "Synthetic tx with 2 top-level instructions: ComputeBudget SetComputeUnitLimit (no logs, no CU entry) + an SPL Token transfer. extractComputeUnits should return exactly 1 entry (the Token program). parseCpiTree should return 2 root nodes.",
+  "slot": 123456903,
+  "blockTime": 1700001300,
+  "transaction": {
+    "message": {
+      "accountKeys": [
+        "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+        "SndTokenAcc1111111111111111111111111111111111",
+        "RcvTokenAcc1111111111111111111111111111111111",
+        "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        "ComputeBudget111111111111111111111111111111"
+      ],
+      "instructions": [
+        {
+          "programIdIndex": 5,
+          "accounts": [],
+          "data": "AwDkCwAA"
+        },
+        {
+          "programIdIndex": 4,
+          "accounts": [1, 3, 2, 0],
+          "data": "KQ22lyZJupoSAAAAAAAAAAAABg=="
+        }
+      ],
+      "recentBlockhash": "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d"
+    },
+    "signatures": ["5MultiInstruction111111111111111111111111111111111"]
+  },
+  "meta": {
+    "err": null,
+    "fee": 5000,
+    "preBalances":  [1000000000, 2039280, 0, 1, 1, 1],
+    "postBalances": [999995000, 2039280, 2039280, 1, 1, 1],
+    "preTokenBalances": [
+      {
+        "accountIndex": 1,
+        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "uiTokenAmount": { "amount": "50000000", "decimals": 6, "uiAmount": 50.0, "uiAmountString": "50" },
+        "owner": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+        "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+      }
+    ],
+    "postTokenBalances": [
+      {
+        "accountIndex": 1,
+        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "uiTokenAmount": { "amount": "40000000", "decimals": 6, "uiAmount": 40.0, "uiAmountString": "40" },
+        "owner": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+        "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+      },
+      {
+        "accountIndex": 2,
+        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "uiTokenAmount": { "amount": "10000000", "decimals": 6, "uiAmount": 10.0, "uiAmountString": "10" },
+        "owner": "BrG44HdsEhzapvs8bEqzvkq4egwevS2y3W5D5zMtWen",
+        "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+      }
+    ],
+    "logMessages": [
+      "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+      "Program ComputeBudget111111111111111111111111111111 success",
+      "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [1]",
+      "Program log: Instruction: TransferChecked",
+      "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 6200 of 399850 compute units",
+      "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success"
+    ],
+    "innerInstructions": []
+  }
+}
