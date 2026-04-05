@@ -1,0 +1,7 @@
+{
+  "framework": "nextjs",
+  "rootDirectory": "apps/web",
+  "buildCommand": "cd ../.. && pnpm install && pnpm --filter @lykta/web build",
+  "installCommand": "echo skip",
+  "outputDirectory": "apps/web/.next"
+}
