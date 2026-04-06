@@ -1,6 +1,6 @@
 import { Command } from 'commander'
 import { Connection } from '@solana/web3.js'
-import { decodeTransaction, type CpiNode } from '@lykta/core'
+import { decodeTransaction, type CpiNode, type LyktaTransaction } from '@lykta/core'
 import chalk from 'chalk'
 
 const CLUSTERS: Record<string, string> = {
@@ -33,56 +33,59 @@ export const inspectCommand = new Command('inspect')
         return
       }
 
-      // Status line
-      const status = tx.success
-        ? chalk.green('✓ SUCCESS')
-        : chalk.red('✗ FAILED')
-      console.log(`\n${status}  slot ${tx.slot}  fee ${tx.fee / 1e9} SOL  ${tx.totalCu} CU total\n`)
-
-      // CPI tree
-      console.log(chalk.bold('CPI Call Tree'))
-      printCpiTree(tx.cpiTree)
-
-      // Compute units
-      console.log(chalk.bold('\nCompute Units'))
-      for (const cu of tx.cuUsage) {
-        const bar = buildCuBar(cu.percentUsed)
-        const color = cu.percentUsed > 80 ? chalk.red : cu.percentUsed > 50 ? chalk.yellow : chalk.green
-        console.log(`  ${color(bar)} ${cu.percentUsed}%  ${cu.programId.slice(0, 8)}…  ${cu.consumed}/${cu.limit}`)
-      }
-
-      // Error (failed tx only)
-      if (!tx.success && tx.error) {
-        const { name, message } = tx.error
-        console.log(chalk.red(`\n✗ ${name ? `${name}: ` : ''}${message}`))
-      }
-
-      // Account diffs
-      const changedAccounts = tx.accountDiffs.filter((d) => d.lamports.delta !== 0 || d.tokenBalance)
-      if (changedAccounts.length > 0) {
-        console.log(chalk.bold('\nAccount Changes'))
-        for (const diff of changedAccounts) {
-          const delta = diff.lamports.delta
-          const sign = delta >= 0 ? chalk.green(`+${delta}`) : chalk.red(`${delta}`)
-          console.log(`  ${diff.address.slice(0, 8)}…  ${sign} lamports`)
-          if (diff.tokenBalance) {
-            console.log(`    token ${diff.tokenBalance.mint.slice(0, 8)}… ${diff.tokenBalance.pre} → ${diff.tokenBalance.post}`)
-          }
-        }
-      }
-      // Token diffs
-      if (tx.tokenDiffs.length > 0) {
-        console.log(chalk.bold('\nToken Diffs'))
-        for (const diff of tx.tokenDiffs) {
-          const sign = diff.delta >= 0n ? chalk.green(`+${diff.uiDelta}`) : chalk.red(diff.uiDelta)
-          console.log(`  ${diff.address.slice(0, 8)}…  ${sign}  mint ${diff.mint.slice(0, 8)}…`)
-        }
-      }
+      renderInspect(tx)
     } catch (err) {
       console.error(chalk.red('Error:'), err instanceof Error ? err.message : String(err))
       process.exit(1)
     }
   })
+
+export function renderInspect(tx: LyktaTransaction): void {
+  // Status line
+  const status = tx.success ? chalk.green('✓ SUCCESS') : chalk.red('✗ FAILED')
+  console.log(`\n${status}  slot ${tx.slot}  fee ${tx.fee / 1e9} SOL  ${tx.totalCu} CU total\n`)
+
+  // CPI tree
+  console.log(chalk.bold('CPI Call Tree'))
+  printCpiTree(tx.cpiTree)
+
+  // Compute units
+  console.log(chalk.bold('\nCompute Units'))
+  for (const cu of tx.cuUsage) {
+    const bar = buildCuBar(cu.percentUsed)
+    const color = cu.percentUsed > 80 ? chalk.red : cu.percentUsed > 50 ? chalk.yellow : chalk.green
+    console.log(`  ${color(bar)} ${cu.percentUsed}%  ${cu.programId.slice(0, 8)}…  ${cu.consumed}/${cu.limit}`)
+  }
+
+  // Error (failed tx only)
+  if (!tx.success && tx.error) {
+    const { name, message } = tx.error
+    console.log(chalk.red(`\n✗ ${name ? `${name}: ` : ''}${message}`))
+  }
+
+  // Account diffs
+  const changedAccounts = tx.accountDiffs.filter((d) => d.lamports.delta !== 0 || d.tokenBalance)
+  if (changedAccounts.length > 0) {
+    console.log(chalk.bold('\nAccount Changes'))
+    for (const diff of changedAccounts) {
+      const delta = diff.lamports.delta
+      const sign = delta >= 0 ? chalk.green(`+${delta}`) : chalk.red(`${delta}`)
+      console.log(`  ${diff.address.slice(0, 8)}…  ${sign} lamports`)
+      if (diff.tokenBalance) {
+        console.log(`    token ${diff.tokenBalance.mint.slice(0, 8)}… ${diff.tokenBalance.pre} → ${diff.tokenBalance.post}`)
+      }
+    }
+  }
+
+  // Token diffs
+  if (tx.tokenDiffs.length > 0) {
+    console.log(chalk.bold('\nToken Diffs'))
+    for (const diff of tx.tokenDiffs) {
+      const sign = diff.delta >= 0n ? chalk.green(`+${diff.uiDelta}`) : chalk.red(diff.uiDelta)
+      console.log(`  ${diff.address.slice(0, 8)}…  ${sign}  mint ${diff.mint.slice(0, 8)}…`)
+    }
+  }
+}
 
 function printCpiTree(nodes: CpiNode[], indent = 0): void {
   for (const node of nodes) {

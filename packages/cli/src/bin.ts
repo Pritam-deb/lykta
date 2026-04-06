@@ -3,6 +3,7 @@ import { program } from 'commander'
 import { inspectCommand } from './commands/inspect.js'
 import { diffCommand } from './commands/diff.js'
 import { errorCommand } from './commands/error.js'
+import { watchCommand } from './commands/watch.js'
 
 program
   .name('lykta')
@@ -12,5 +13,6 @@ program
 program.addCommand(inspectCommand)
 program.addCommand(diffCommand)
 program.addCommand(errorCommand)
+program.addCommand(watchCommand)
 
 program.parse()

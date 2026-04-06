@@ -1,5 +1,5 @@
 import type { Connection, VersionedTransactionResponse } from '@solana/web3.js'
-import type { Idl, IdlErrorCode } from '@coral-xyz/anchor'
+import type { Idl } from '@coral-xyz/anchor'
 import Anthropic from '@anthropic-ai/sdk'
 import type { LyktaError, LyktaTransaction } from './types.js'
 import { SYSTEM_ERRORS, SPL_TOKEN_ERRORS, SPL_TOKEN_PROGRAM_IDS, SYSTEM_PROGRAM_ERRORS, TRANSACTION_ERRORS } from './registry.js'
@@ -36,7 +36,7 @@ const ANCHOR_ERRORS: Record<number, string> = {
 async function explainWithClaude(params: {
   code: number | string
   programId: string
-  idlErrors: IdlErrorCode[]
+  idlErrors: { code: number; name: string; msg?: string }[]
   logs: string[]
   apiKey: string
 }): Promise<string | null> {

@@ -14,8 +14,10 @@ export const errorCommand = new Command('error')
   .argument('<signature>', 'Transaction signature')
   .option('-c, --cluster <cluster>', 'Cluster to query: mainnet | devnet | localnet', 'devnet')
   .option('-r, --rpc <url>', 'Custom RPC URL (overrides --cluster)')
-  .action(async (signature: string, opts: { cluster: string; rpc?: string }) => {
-    const rpcUrl = opts.rpc ?? CLUSTERS[opts.cluster] ?? CLUSTERS['devnet']!
+  .option('-u, --url <url>', 'Custom RPC URL — alias for --rpc')
+  .option('--ai', 'Use Claude AI to generate a fix suggestion (requires ANTHROPIC_API_KEY)')
+  .action(async (signature: string, opts: { cluster: string; rpc?: string; url?: string; ai?: boolean }) => {
+    const rpcUrl = opts.url ?? opts.rpc ?? CLUSTERS[opts.cluster] ?? CLUSTERS['devnet']!
     const connection = new Connection(rpcUrl, 'confirmed')
 
     try {
@@ -26,7 +28,8 @@ export const errorCommand = new Command('error')
         return
       }
 
-      const error = await explainError(tx, connection)
+      const claudeApiKey = opts.ai ? (process.env.ANTHROPIC_API_KEY ?? '') : ''
+      const error = await explainError(tx, connection, undefined, claudeApiKey)
       if (!error) {
         console.log(chalk.yellow('Could not decode error details.'))
         return
