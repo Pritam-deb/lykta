@@ -1,6 +1,6 @@
 {
   "name": "@lykta/core",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "Transaction decode engine, CPI graph builder, account diff, compute unit analyzer, and error explainer for Solana.",
   "main": "./dist/index.mjs",
   "module": "./dist/index.mjs",

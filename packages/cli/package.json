@@ -1,6 +1,6 @@
 {
   "name": "@lykta/cli",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "CLI tool for inspecting, diffing, and explaining Solana transactions.",
   "type": "module",
   "bin": {
