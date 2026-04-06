@@ -1,4 +1,18 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
+
+// Mock the Anthropic SDK so Claude tests always run without a real API key.
+// The mock returns a fixed 2-sentence suggestion that the assertions can rely on.
+vi.mock('@anthropic-ai/sdk', () => {
+  const mockCreate = vi.fn().mockResolvedValue({
+    content: [{ type: 'text', text: 'The bid price is outside the valid range. Check that your price is above the minimum tick and below the market upper bound.' }],
+  })
+  return {
+    default: vi.fn().mockImplementation(() => ({
+      messages: { create: mockCreate },
+    })),
+  }
+})
+
 import { explainError, resolveError } from '../src/index.js'
 import type { Connection, VersionedTransactionResponse } from '@solana/web3.js'
 import type { Idl } from '@coral-xyz/anchor'
@@ -125,20 +139,18 @@ describe('explainError', () => {
     expect(error!.message).toContain('Transaction failed')
   })
 
-  // AC2 — requires a live API key; skipped locally until ANTHROPIC_API_KEY is set
-  it.skipIf(!process.env.ANTHROPIC_API_KEY)(
-    'AC2 — returns a non-empty 2-sentence suggestion via Claude when API key is set',
-    async () => {
-      const tx = makeLyktaTx(driftTx, false)
-      // No idlMap — forces Claude to be the only resolution path
-      const error = await explainError(tx, mockConnection, undefined, process.env.ANTHROPIC_API_KEY)
+  it('AC2 — returns a 2-sentence suggestion via Claude (mocked SDK, no real API key needed)', async () => {
+    const tx = makeLyktaTx(driftTx, false)
+    // No idlMap — forces the Claude fallback path; pass a non-empty key so the
+    // branch is entered (the SDK itself is mocked and never hits the network)
+    const error = await explainError(tx, mockConnection, undefined, 'mock-key')
 
-      expect(error).toBeDefined()
-      expect(typeof error!.suggestion).toBe('string')
-      expect(error!.suggestion!.length).toBeGreaterThan(0)
-    },
-    15_000, // generous timeout for the API round-trip
-  )
+    expect(error).toBeDefined()
+    expect(typeof error!.suggestion).toBe('string')
+    expect(error!.suggestion!.length).toBeGreaterThan(0)
+    // Verify the mock response text is what we expect (2 sentences)
+    expect(error!.suggestion).toContain('bid price')
+  })
 })
 
 // ── resolveError ──────────────────────────────────────────────────────────────
