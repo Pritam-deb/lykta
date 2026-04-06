@@ -1,7 +1,7 @@
 import type { Connection, VersionedTransactionResponse } from '@solana/web3.js'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { LyktaError, LyktaTransaction } from './types.js'
-import { SYSTEM_ERRORS, SPL_TOKEN_ERRORS } from './registry.js'
+import { SYSTEM_ERRORS, SPL_TOKEN_ERRORS, SPL_TOKEN_PROGRAM_IDS, SYSTEM_PROGRAM_ERRORS, TRANSACTION_ERRORS } from './registry.js'
 
 /** Known Anchor framework error codes → human-readable messages */
 const ANCHOR_ERRORS: Record<number, string> = {
@@ -32,7 +32,8 @@ const ANCHOR_ERRORS: Record<number, string> = {
  * Resolution order for `{ InstructionError: [idx, detail] }` errors:
  *  1. **System/runtime errors** — `detail` is a string → look up in `SYSTEM_ERRORS`
  *  2. **Anchor framework errors** — `detail` is `{ Custom: N }` in range 100–3999
- *  3. **SPL Token errors** — `detail` is `{ Custom: N }` → look up in `SPL_TOKEN_ERRORS`
+ *  3a. **System Program errors** — `programId` is `11111…` → look up in `SYSTEM_PROGRAM_ERRORS`
+ *  3b. **SPL Token errors** — `programId` is a known Token program → look up in `SPL_TOKEN_ERRORS`
  *  4. **Unknown custom error** — falls back to `"Custom program error: 0xNNN"`
  *
  * The `programId` is extracted from the instruction at `idx` inside the transaction
@@ -44,12 +45,19 @@ export function resolveError(tx: VersionedTransactionResponse): LyktaError | und
   const rawErr = tx.meta?.err
   if (!rawErr) return undefined
 
+  // Transaction-level errors are plain strings (e.g. "BlockhashNotFound", "InsufficientFundsForFee")
+  if (typeof rawErr === 'string') {
+    const txMsg = TRANSACTION_ERRORS.get(rawErr)
+    return { code: rawErr, programId: 'unknown', name: rawErr, message: txMsg ?? rawErr }
+  }
+
   const errObj = rawErr as Record<string, unknown>
 
-  // Transaction-level errors (not instruction-level) — e.g. "BlockhashNotFound"
+  // Transaction-level object errors with no InstructionError key (rare edge cases)
   if (!('InstructionError' in errObj)) {
     const code = String(rawErr)
-    return { code, programId: 'unknown', message: code }
+    const txMsg = TRANSACTION_ERRORS.get(code)
+    return { code, programId: 'unknown', name: code, message: txMsg ?? code }
   }
 
   const [ixIndex, detail] = errObj['InstructionError'] as [number, unknown]
@@ -84,11 +92,22 @@ export function resolveError(tx: VersionedTransactionResponse): LyktaError | und
       return { code, programId, name, message: anchorMsg }
     }
 
-    // ── Tier 3: SPL Token errors ──────────────────────────────────────────────
-    const splMsg = SPL_TOKEN_ERRORS.get(code)
-    if (splMsg) {
-      const name = splMsg.split(':')[0] ?? splMsg
-      return { code, programId, name, message: splMsg }
+    // ── Tier 3a: System Program errors (program-specific, checked before SPL) ─
+    if (programId === '11111111111111111111111111111111') {
+      const sysProgMsg = SYSTEM_PROGRAM_ERRORS.get(code)
+      if (sysProgMsg) {
+        const name = sysProgMsg.split(':')[0] ?? sysProgMsg
+        return { code, programId, name, message: sysProgMsg }
+      }
+    }
+
+    // ── Tier 3b: SPL Token errors (only for known Token / Token-2022 programs) ─
+    if (SPL_TOKEN_PROGRAM_IDS.has(programId)) {
+      const splMsg = SPL_TOKEN_ERRORS.get(code)
+      if (splMsg) {
+        const name = splMsg.split(':')[0] ?? splMsg
+        return { code, programId, name, message: splMsg }
+      }
     }
 
     // Unrecognised custom code
