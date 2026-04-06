@@ -1,6 +1,6 @@
 import { Command } from 'commander'
 import { Connection } from '@solana/web3.js'
-import { fetchTransaction, type CpiNode } from '@lykta/core'
+import { decodeTransaction, type CpiNode } from '@lykta/core'
 import chalk from 'chalk'
 
 const CLUSTERS: Record<string, string> = {
@@ -14,14 +14,24 @@ export const inspectCommand = new Command('inspect')
   .argument('<signature>', 'Transaction signature')
   .option('-c, --cluster <cluster>', 'Cluster to query: mainnet | devnet | localnet', 'devnet')
   .option('-r, --rpc <url>', 'Custom RPC URL (overrides --cluster)')
-  .action(async (signature: string, opts: { cluster: string; rpc?: string }) => {
-    const rpcUrl = opts.rpc ?? CLUSTERS[opts.cluster] ?? CLUSTERS['devnet']!
+  .option('-u, --url <url>', 'Custom RPC URL — alias for --rpc')
+  .option('--json', 'Output raw decoded transaction as JSON')
+  .action(async (signature: string, opts: { cluster: string; rpc?: string; url?: string; json?: boolean }) => {
+    const rpcUrl = opts.url ?? opts.rpc ?? CLUSTERS[opts.cluster] ?? CLUSTERS['devnet']!
     const connection = new Connection(rpcUrl, 'confirmed')
 
-    console.log(chalk.dim(`Fetching ${signature.slice(0, 8)}… on ${opts.rpc ?? opts.cluster}`))
+    console.log(chalk.dim(`Fetching ${signature.slice(0, 8)}… on ${opts.url ?? opts.rpc ?? opts.cluster}`))
 
     try {
-      const tx = await fetchTransaction(signature, connection)
+      const tx = await decodeTransaction(signature, connection)
+
+      // --json: output raw decoded object and exit before any chalk rendering
+      if (opts.json) {
+        console.log(JSON.stringify(tx, (_key, value) =>
+          typeof value === 'bigint' ? value.toString() : value
+        , 2))
+        return
+      }
 
       // Status line
       const status = tx.success
@@ -41,6 +51,12 @@ export const inspectCommand = new Command('inspect')
         console.log(`  ${color(bar)} ${cu.percentUsed}%  ${cu.programId.slice(0, 8)}…  ${cu.consumed}/${cu.limit}`)
       }
 
+      // Error (failed tx only)
+      if (!tx.success && tx.error) {
+        const { name, message } = tx.error
+        console.log(chalk.red(`\n✗ ${name ? `${name}: ` : ''}${message}`))
+      }
+
       // Account diffs
       const changedAccounts = tx.accountDiffs.filter((d) => d.lamports.delta !== 0 || d.tokenBalance)
       if (changedAccounts.length > 0) {
@@ -52,6 +68,14 @@ export const inspectCommand = new Command('inspect')
           if (diff.tokenBalance) {
             console.log(`    token ${diff.tokenBalance.mint.slice(0, 8)}… ${diff.tokenBalance.pre} → ${diff.tokenBalance.post}`)
           }
+        }
+      }
+      // Token diffs
+      if (tx.tokenDiffs.length > 0) {
+        console.log(chalk.bold('\nToken Diffs'))
+        for (const diff of tx.tokenDiffs) {
+          const sign = diff.delta >= 0n ? chalk.green(`+${diff.uiDelta}`) : chalk.red(diff.uiDelta)
+          console.log(`  ${diff.address.slice(0, 8)}…  ${sign}  mint ${diff.mint.slice(0, 8)}…`)
         }
       }
     } catch (err) {

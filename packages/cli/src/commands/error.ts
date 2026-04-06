@@ -1,6 +1,6 @@
 import { Command } from 'commander'
 import { Connection } from '@solana/web3.js'
-import { fetchTransaction, explainError } from '@lykta/core'
+import { decodeTransaction, explainError } from '@lykta/core'
 import chalk from 'chalk'
 
 const CLUSTERS: Record<string, string> = {
@@ -19,7 +19,7 @@ export const errorCommand = new Command('error')
     const connection = new Connection(rpcUrl, 'confirmed')
 
     try {
-      const tx = await fetchTransaction(signature, connection)
+      const tx = await decodeTransaction(signature, connection)
 
       if (tx.success) {
         console.log(chalk.green('✓ Transaction succeeded — no error to explain.'))

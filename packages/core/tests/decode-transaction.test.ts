@@ -23,6 +23,7 @@ import cuExceededTx from './fixtures/compute-budget-exceeded.json'
 import multiTx from './fixtures/multi-instruction.json'
 import failedSysTx from './fixtures/failed-system-error.json'
 import cpiNestedTx from './fixtures/cpi-nested.json'
+import failedDriftTx from './fixtures/failed-drift.json'
 
 function raw(fixture: unknown): VersionedTransactionResponse {
   return fixture as VersionedTransactionResponse
@@ -292,6 +293,34 @@ describe('failed-system-error', () => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+describe('failed-drift (AC3 — unknown custom code fallback)', () => {
+  it('marks success=false', async () => {
+    const tx = await decodeTransactionFromRaw(raw(failedDriftTx), mockConnection)
+    expect(tx.success).toBe(false)
+  })
+
+  it('populates error with code 6000 and hex fallback message (no IDL available)', async () => {
+    const tx = await decodeTransactionFromRaw(raw(failedDriftTx), mockConnection)
+
+    expect(tx.error).toBeDefined()
+    expect(tx.error!.code).toBe(6000)
+    expect(tx.error!.programId).toBe('dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH')
+    expect(tx.error!.name).toBeUndefined()
+    expect(tx.error!.message).toMatch(/0x1770/i)
+  })
+
+  it('still populates cuUsage from the Drift instruction logs', async () => {
+    const tx = await decodeTransactionFromRaw(raw(failedDriftTx), mockConnection)
+
+    expect(tx.cuUsage).toHaveLength(1)
+    expect(tx.cuUsage[0]!.consumed).toBe(8000)
+    expect(tx.cuUsage[0]!.limit).toBe(200000)
+    expect(tx.cuUsage[0]!.isOverBudget).toBe(false)
+  })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 describe('cpi-nested', () => {
   it('decodes successfully', async () => {
     const tx = await decodeTransactionFromRaw(raw(cpiNestedTx), mockConnection)
@@ -321,5 +350,30 @@ describe('cpi-nested', () => {
     const tx = await decodeTransactionFromRaw(raw(cpiNestedTx), mockConnection)
     const jupNode = tx.cpiTree[1]!
     expect(jupNode.programName).toBe('Jupiter Aggregator v6')
+  })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AC1 / AC2 — explicit joint assertions per Day-4 acceptance criteria
+
+describe('AC1 — successful tx: error absent, cuUsage populated', () => {
+  it('simple-transfer has no error and at least one cuUsage entry', async () => {
+    const tx = await decodeTransactionFromRaw(raw(simpleTx), mockConnection)
+
+    expect(tx.success).toBe(true)
+    expect(tx.error).toBeUndefined()
+    expect(tx.cuUsage.length).toBeGreaterThan(0)
+    expect(tx.totalCu).toBeGreaterThan(0)
+  })
+})
+
+describe('AC2 — failed tx: error resolved and cuUsage still populated', () => {
+  it('failed-anchor has a resolved error and a non-empty cuUsage', async () => {
+    const tx = await decodeTransactionFromRaw(raw(failedAnchorTx), mockConnection)
+
+    expect(tx.success).toBe(false)
+    expect(tx.error).toBeDefined()
+    expect(tx.error!.name).toContain('ConstraintMut')
+    expect(tx.cuUsage.length).toBeGreaterThan(0)
   })
 })

@@ -106,7 +106,7 @@ export async function decodeTransactionFromRaw(
   const totalCu = cuUsage.reduce((sum, cu) => sum + cu.consumed, 0)
 
   // ── Step 9: Error resolution (3-tier registry lookup) ──────────────────────
-  const error = resolveError(raw)
+  const error = raw.meta?.err ? resolveError(raw) : undefined
 
   return {
     signature,

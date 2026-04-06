@@ -1,6 +1,6 @@
 import { Command } from 'commander'
 import { Connection } from '@solana/web3.js'
-import { fetchTransaction } from '@lykta/core'
+import { decodeTransaction } from '@lykta/core'
 import chalk from 'chalk'
 
 const CLUSTERS: Record<string, string> = {
@@ -19,7 +19,7 @@ export const diffCommand = new Command('diff')
     const connection = new Connection(rpcUrl, 'confirmed')
 
     try {
-      const tx = await fetchTransaction(signature, connection)
+      const tx = await decodeTransaction(signature, connection)
 
       console.log(chalk.bold(`\nAccount Diffs — ${signature.slice(0, 16)}…\n`))
 
