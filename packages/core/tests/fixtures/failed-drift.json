@@ -1,0 +1,38 @@
+{
+  "_comment": "Synthetic failed Drift transaction. meta.err = { InstructionError: [0, { Custom: 6000 }] }. Logs carry 'Error Number: 6000' so explainError can extract the code. Used to test IDL-tier resolution without network calls.",
+  "slot": 234567890,
+  "blockTime": 1710000000,
+  "transaction": {
+    "message": {
+      "accountKeys": [
+        "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+        "BrG44HdsEhzapvs8bEqzvkq4egwevS2y3W5D5zMtWen",
+        "dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH"
+      ],
+      "instructions": [
+        {
+          "programIdIndex": 2,
+          "accounts": [0, 1],
+          "data": "AQIDBAUGBwg="
+        }
+      ],
+      "recentBlockhash": "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d"
+    },
+    "signatures": ["5DriftFailed111111111111111111111111111111111111"]
+  },
+  "meta": {
+    "err": { "InstructionError": [0, { "Custom": 6000 }] },
+    "fee": 5000,
+    "preBalances":  [1000000000, 0, 1],
+    "postBalances": [999995000, 0, 1],
+    "preTokenBalances": [],
+    "postTokenBalances": [],
+    "logMessages": [
+      "Program dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH invoke [1]",
+      "Program log: AnchorError occurred. Error Code: InvalidBidPrice. Error Number: 6000. Error Message: Invalid bid price.",
+      "Program dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH consumed 8000 of 200000 compute units",
+      "Program dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH failed: custom program error: 0x1770"
+    ],
+    "innerInstructions": []
+  }
+}

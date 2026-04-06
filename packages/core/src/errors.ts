@@ -1,5 +1,6 @@
 import type { Connection, VersionedTransactionResponse } from '@solana/web3.js'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import type { Idl, IdlErrorCode } from '@coral-xyz/anchor'
+import Anthropic from '@anthropic-ai/sdk'
 import type { LyktaError, LyktaTransaction } from './types.js'
 import { SYSTEM_ERRORS, SPL_TOKEN_ERRORS, SPL_TOKEN_PROGRAM_IDS, SYSTEM_PROGRAM_ERRORS, TRANSACTION_ERRORS } from './registry.js'
 
@@ -23,6 +24,53 @@ const ANCHOR_ERRORS: Record<number, string> = {
   3004: 'AccountDidNotSerialize: Failed to serialize the account',
   3007: 'AccountNotMutable: The given account is not mutable',
   3008: 'AccountOwnedByWrongProgram: The given account is owned by a different program than expected',
+}
+
+/**
+ * Calls the Claude API and returns a 2-sentence plain-English explanation of why the
+ * transaction failed.  Returns `null` on any error so a Claude outage never breaks the
+ * main resolution path.
+ *
+ * Not exported — consumed only by `explainError` when an API key is present.
+ */
+async function explainWithClaude(params: {
+  code: number | string
+  programId: string
+  idlErrors: IdlErrorCode[]
+  logs: string[]
+  apiKey: string
+}): Promise<string | null> {
+  try {
+    const client = new Anthropic({ apiKey: params.apiKey })
+
+    const recentLogs = params.logs.slice(-15).join('\n')
+    const errorList = params.idlErrors.length > 0
+      ? JSON.stringify(params.idlErrors.map((e) => ({ code: e.code, name: e.name, msg: e.msg })))
+      : '(none available)'
+
+    const response = await client.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 256,
+      system: 'You are a Solana developer assistant. Be concise and technical.',
+      messages: [
+        {
+          role: 'user',
+          content:
+            `A Solana transaction failed.\n` +
+            `Program: ${params.programId}\n` +
+            `Error code: ${params.code}\n\n` +
+            `Known errors for this program:\n${errorList}\n\n` +
+            `Last transaction logs:\n${recentLogs}\n\n` +
+            `Explain in exactly 2 sentences what went wrong and what the caller should check.`,
+        },
+      ],
+    })
+
+    const block = response.content.find((b) => b.type === 'text')
+    return block?.type === 'text' ? block.text : null
+  } catch {
+    return null
+  }
 }
 
 /**
@@ -123,19 +171,30 @@ export function resolveError(tx: VersionedTransactionResponse): LyktaError | und
 }
 
 /**
- * Decodes the error from a failed transaction and optionally generates a fix suggestion
- * using the Claude API (when ANTHROPIC_API_KEY is set in the environment).
+ * Decodes the error from a failed transaction using a multi-tier resolution strategy:
+ *
+ *  1. **Anchor framework errors** — codes 100–3999 resolved from the built-in map.
+ *  2. **IDL errors** — `idlMap` entry for the failing program scanned for a matching
+ *     `code` field.  No network call required when the caller pre-fetches via
+ *     `fetchIdlsForPrograms`.
+ *  3. **Generic fallback** — raw error JSON with no name set.
+ *  4. **Claude suggestion** — when `claudeApiKey` (or `ANTHROPIC_API_KEY` env var) is
+ *     present and tiers 1–2 did not resolve a name, calls `explainWithClaude` and
+ *     attaches the result as `error.suggestion`.  Never throws — Claude failure is
+ *     silently swallowed so the caller always gets a `LyktaError`.
  */
 export async function explainError(
   tx: LyktaTransaction,
   _connection: Connection,
+  idlMap?: Map<string, Idl | null>,
+  claudeApiKey?: string,
 ): Promise<LyktaError | undefined> {
   if (tx.success) return undefined
 
   const rawErr = tx.raw.meta?.err
   if (!rawErr) return undefined
 
-  // Parse Anchor custom error codes from log messages
+  // Extract error code and failing program ID from log messages
   const logs = tx.raw.meta?.logMessages ?? []
   let code: number | string = 'unknown'
   let programId = 'unknown'
@@ -153,17 +212,39 @@ export async function explainError(
     }
   }
 
-  const name = typeof code === 'number' ? ANCHOR_ERRORS[code] : undefined
-  const message = name ?? `Transaction failed with error: ${JSON.stringify(rawErr)}`
+  // ── Tier 1: Anchor framework errors (100–3999) ────────────────────────────
+  if (typeof code === 'number') {
+    const anchorMsg = ANCHOR_ERRORS[code]
+    if (anchorMsg) {
+      const name = anchorMsg.split(':')[0] ?? anchorMsg
+      return { code, programId, name, message: anchorMsg }
+    }
+  }
 
-  const error: LyktaError = name
-    ? { code, programId, name, message }
-    : { code, programId, message }
+  // ── Tier 2: IDL error lookup ──────────────────────────────────────────────
+  if (typeof code === 'number' && idlMap) {
+    const idl = idlMap.get(programId)
+    const idlError = idl?.errors?.find((e) => e.code === code)
+    if (idlError) {
+      return {
+        code,
+        programId,
+        name: idlError.name,
+        message: idlError.msg ?? idlError.name,
+      }
+    }
+  }
 
-  // TODO (Week 4): call Claude API for AI-generated fix suggestion
-  // if (process.env.ANTHROPIC_API_KEY) {
-  //   error.suggestion = await callClaude({ logs, error, idl })
-  // }
+  // ── Generic fallback + optional Claude suggestion (Tier 4) ──────────────
+  const message = `Transaction failed with error: ${JSON.stringify(rawErr)}`
+  const error: LyktaError = { code, programId, message }
+
+  const apiKey = claudeApiKey ?? process.env.ANTHROPIC_API_KEY
+  if (apiKey) {
+    const idlErrors = (idlMap?.get(programId)?.errors) ?? []
+    const suggestion = await explainWithClaude({ code, programId, idlErrors, logs, apiKey })
+    if (suggestion) error.suggestion = suggestion
+  }
 
   return error
 }

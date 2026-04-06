@@ -1,9 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import { explainError, resolveError } from '../src/index.js'
 import type { Connection, VersionedTransactionResponse } from '@solana/web3.js'
+import type { Idl } from '@coral-xyz/anchor'
 import simpleTx from './fixtures/simple-transfer.json'
 import failedTx from './fixtures/failed-anchor.json'
 import systemErrTx from './fixtures/failed-system-error.json'
+import driftTx from './fixtures/failed-drift.json'
 import { buildCpiTree } from '../src/cpi.js'
 import { extractAccountDiffs } from '../src/diff.js'
 import { parseCuUsage } from '../src/compute.js'
@@ -48,6 +50,21 @@ function makeLyktaTx(rawFixture: unknown, success: boolean): LyktaTransaction {
   }
 }
 
+const DRIFT_PROGRAM_ID = 'dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH'
+
+// Minimal synthetic IDL for Drift — only the errors array is needed for these tests
+const driftIdlMap = new Map<string, Idl | null>([
+  [DRIFT_PROGRAM_ID, {
+    address: DRIFT_PROGRAM_ID,
+    metadata: { name: 'drift', version: '2.0.0', spec: '0.1.0' },
+    instructions: [],
+    errors: [
+      { code: 6000, name: 'InvalidBidPrice', msg: 'Invalid bid price' },
+      { code: 6001, name: 'InvalidAskPrice', msg: 'Invalid ask price' },
+    ],
+  } as unknown as Idl],
+])
+
 describe('explainError', () => {
   it('returns undefined for successful transactions', async () => {
     const tx = makeLyktaTx(simpleTx, true)
@@ -71,6 +88,55 @@ describe('explainError', () => {
 
     expect(error!.programId).toBe('myProgram11111111111111111111111111111111111')
   })
+
+  it('AC1 — resolves IDL error name from idlMap (Drift 6000 = InvalidBidPrice)', async () => {
+    const tx = makeLyktaTx(driftTx, false)
+    const error = await explainError(tx, mockConnection, driftIdlMap)
+
+    expect(error).toBeDefined()
+    expect(error!.code).toBe(6000)
+    expect(error!.programId).toBe(DRIFT_PROGRAM_ID)
+    expect(error!.name).toBe('InvalidBidPrice')
+    expect(error!.message).toBe('Invalid bid price')
+    // IDL resolved the name → Claude must not be called regardless of env
+    expect(error!.suggestion).toBeUndefined()
+  })
+
+  it('AC3 — returns defined error without throwing when no idlMap and no API key', async () => {
+    const tx = makeLyktaTx(driftTx, false)
+    // Pass '' explicitly so process.env.ANTHROPIC_API_KEY is not picked up if set
+    const error = await explainError(tx, mockConnection, undefined, '')
+
+    expect(error).toBeDefined()
+    expect(error!.code).toBe(6000)
+    expect(error!.name).toBeUndefined()
+    expect(error!.suggestion).toBeUndefined()
+  })
+
+  it('falls through to generic message when idlMap has no entry for the program', async () => {
+    const tx = makeLyktaTx(driftTx, false)
+    const emptyMap = new Map<string, Idl | null>()
+    // Pass '' so the env var is not used — keeps the test deterministic
+    const error = await explainError(tx, mockConnection, emptyMap, '')
+
+    expect(error!.name).toBeUndefined()
+    expect(error!.message).toContain('Transaction failed')
+  })
+
+  // AC2 — requires a live API key; skipped locally until ANTHROPIC_API_KEY is set
+  it.skipIf(!process.env.ANTHROPIC_API_KEY)(
+    'AC2 — returns a non-empty 2-sentence suggestion via Claude when API key is set',
+    async () => {
+      const tx = makeLyktaTx(driftTx, false)
+      // No idlMap — forces Claude to be the only resolution path
+      const error = await explainError(tx, mockConnection, undefined, process.env.ANTHROPIC_API_KEY)
+
+      expect(error).toBeDefined()
+      expect(typeof error!.suggestion).toBe('string')
+      expect(error!.suggestion!.length).toBeGreaterThan(0)
+    },
+    15_000, // generous timeout for the API round-trip
+  )
 })
 
 // ── resolveError ──────────────────────────────────────────────────────────────
