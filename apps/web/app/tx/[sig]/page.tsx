@@ -29,6 +29,9 @@ function serializeValue(v: unknown): unknown {
 }
 
 function rpcUrlForCluster(cluster: Cluster): string {
+  if (cluster === "localnet") {
+    return process.env.LOCALNET_RPC_URL ?? "http://127.0.0.1:8899";
+  }
   if (cluster === "devnet") {
     return process.env.HELIUS_RPC_URL_DEVNET ?? "https://api.devnet.solana.com";
   }
@@ -52,7 +55,7 @@ interface Props {
 }
 
 function parseCluster(raw: string | undefined): Cluster {
-  if (raw === "devnet" || raw === "testnet") return raw;
+  if (raw === "devnet" || raw === "testnet" || raw === "localnet") return raw;
   return "mainnet-beta";
 }
 

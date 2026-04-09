@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import 'dotenv/config'
 import { program } from 'commander'
 import { inspectCommand } from './commands/inspect.js'
 import { diffCommand } from './commands/diff.js'

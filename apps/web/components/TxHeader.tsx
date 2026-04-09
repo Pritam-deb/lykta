@@ -3,17 +3,20 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export type Cluster = "mainnet-beta" | "devnet" | "testnet";
+export type Cluster = "mainnet-beta" | "devnet" | "testnet" | "localnet";
 
 const CLUSTERS: { value: Cluster; label: string }[] = [
   { value: "mainnet-beta", label: "Mainnet" },
   { value: "devnet", label: "Devnet" },
   { value: "testnet", label: "Testnet" },
+  { value: "localnet", label: "Localnet" },
 ];
 
 function explorerUrl(sig: string, cluster: Cluster): string {
   const base = "https://explorer.solana.com/tx/" + sig;
-  return cluster === "mainnet-beta" ? base : `${base}?cluster=${cluster}`;
+  if (cluster === "mainnet-beta") return base;
+  if (cluster === "localnet") return `${base}?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899`;
+  return `${base}?cluster=${cluster}`;
 }
 
 interface Props {
@@ -37,10 +40,7 @@ export default function TxHeader({ sig, cluster }: Props) {
 
   function onClusterChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const next = e.target.value as Cluster;
-    const url =
-      next === "mainnet-beta"
-        ? `/tx/${sig}`
-        : `/tx/${sig}?cluster=${next}`;
+    const url = next === "mainnet-beta" ? `/tx/${sig}` : `/tx/${sig}?cluster=${next}`;
     router.push(url);
   }
 
