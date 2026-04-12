@@ -1,9 +1,20 @@
 import { PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js'
+import type { Connection } from '@solana/web3.js'
 import { LiteSVM, type TransactionMetadata, type FailedTransactionMetadata } from 'litesvm'
 import { parseCpiTree } from '@lykta/core'
 import type { CpiNode } from '@lykta/core'
 import bs58 from 'bs58'
 import type { SolScopeTestResult } from './reporter.js'
+
+/**
+ * Minimal wallet shape required by Anchor's Provider interface.
+ * Uses a default zero PublicKey since LiteSVM tests manage signers directly.
+ */
+export interface AnchorWallet {
+  publicKey: PublicKey
+  signTransaction<T extends Transaction | VersionedTransaction>(tx: T): Promise<T>
+  signAllTransactions<T extends Transaction | VersionedTransaction>(txs: T[]): Promise<T[]>
+}
 
 /**
  * Walks a CPI tree depth-first and returns the first node where `failed` is
@@ -74,6 +85,22 @@ export class LyktaProvider {
   readonly svm: LiteSVM
   private results = new Map<string, SolScopeTestResult>()
 
+  /**
+   * Stub Connection — methods degrade gracefully in @lykta/core when absent.
+   * Exposed on the class so anchor.setProvider(provider as any) resolves it.
+   */
+  readonly connection: Connection = {} as Connection
+
+  /**
+   * Stub wallet with a zero PublicKey. LiteSVM tests attach real signers to
+   * transactions directly, so this wallet is never called for signing.
+   */
+  readonly wallet: AnchorWallet = {
+    publicKey: PublicKey.default,
+    signTransaction: async (tx) => tx,
+    signAllTransactions: async (txs) => txs,
+  }
+
   constructor() {
     this.svm = new LiteSVM()
       .withSysvars()
@@ -141,5 +168,26 @@ export class LyktaProvider {
    */
   getResult(signature: string): SolScopeTestResult | undefined {
     return this.results.get(signature)
+  }
+
+  /**
+   * Returns a minimal Anchor-compatible provider object so callers can do:
+   *
+   *   anchor.setProvider(provider.asAnchorProvider())
+   *
+   * The returned object satisfies Anchor's Provider interface structurally:
+   *   - connection  — stub Connection (methods fail gracefully)
+   *   - wallet      — stub wallet with zero PublicKey, pass-through signers
+   *   - sendAndConfirm — delegates to this.sendAndConfirm()
+   *
+   * Cast to `anchor.Provider` or `any` at the call site if TypeScript complains
+   * about the full AnchorProvider shape.
+   */
+  asAnchorProvider(): { connection: Connection; wallet: AnchorWallet; sendAndConfirm: (tx: Transaction | VersionedTransaction) => string } {
+    return {
+      connection: this.connection,
+      wallet: this.wallet,
+      sendAndConfirm: (tx) => this.sendAndConfirm(tx),
+    }
   }
 }
