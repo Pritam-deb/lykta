@@ -1,14 +1,14 @@
 import { describe, it, expect, vi } from 'vitest'
 
-// Mock the Google GenAI SDK so AI tests always run without a real API key.
+// Mock the Anthropic SDK so Claude tests always run without a real API key.
 // The mock returns a fixed 2-sentence suggestion that the assertions can rely on.
-vi.mock('@google/genai', () => {
-  const mockGenerateContent = vi.fn().mockResolvedValue({
-    text: 'The bid price is outside the valid range. Check that your price is above the minimum tick and below the market upper bound.',
+vi.mock('@anthropic-ai/sdk', () => {
+  const mockCreate = vi.fn().mockResolvedValue({
+    content: [{ type: 'text', text: 'The bid price is outside the valid range. Check that your price is above the minimum tick and below the market upper bound.' }],
   })
   return {
-    GoogleGenAI: vi.fn().mockImplementation(() => ({
-      models: { generateContent: mockGenerateContent },
+    default: vi.fn().mockImplementation(() => ({
+      messages: { create: mockCreate },
     })),
   }
 })
@@ -120,7 +120,7 @@ describe('explainError', () => {
 
   it('AC3 — returns defined error without throwing when no idlMap and no API key', async () => {
     const tx = makeLyktaTx(driftTx, false)
-    // Pass '' explicitly so process.env.GEMINI_API_KEY is not picked up if set
+    // Pass '' explicitly so process.env.ANTHROPIC_API_KEY is not picked up if set
     const error = await explainError(tx, mockConnection, undefined, '')
 
     expect(error).toBeDefined()
@@ -139,9 +139,9 @@ describe('explainError', () => {
     expect(error!.message).toContain('Transaction failed')
   })
 
-  it('AC2 — returns a 2-sentence suggestion via Gemini (mocked SDK, no real API key needed)', async () => {
+  it('AC2 — returns a 2-sentence suggestion via Claude (mocked SDK, no real API key needed)', async () => {
     const tx = makeLyktaTx(driftTx, false)
-    // No idlMap — forces the Gemini fallback path; pass a non-empty key so the
+    // No idlMap — forces the Claude fallback path; pass a non-empty key so the
     // branch is entered (the SDK itself is mocked and never hits the network)
     const error = await explainError(tx, mockConnection, undefined, 'mock-key')
 
