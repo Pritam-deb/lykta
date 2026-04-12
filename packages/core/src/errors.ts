@@ -1,6 +1,6 @@
 import type { Connection, VersionedTransactionResponse } from '@solana/web3.js'
 import type { Idl } from '@coral-xyz/anchor'
-import Anthropic from '@anthropic-ai/sdk'
+import { GoogleGenAI } from '@google/genai'
 import type { LyktaError, LyktaTransaction } from './types.js'
 import { SYSTEM_ERRORS, SPL_TOKEN_ERRORS, SPL_TOKEN_PROGRAM_IDS, SYSTEM_PROGRAM_ERRORS, TRANSACTION_ERRORS } from './registry.js'
 
@@ -33,7 +33,7 @@ const ANCHOR_ERRORS: Record<number, string> = {
  *
  * Not exported — consumed only by `explainError` when an API key is present.
  */
-async function explainWithClaude(params: {
+async function explainWithAI(params: {
   code: number | string
   programId: string
   idlErrors: { code: number; name: string; msg?: string }[]
@@ -41,33 +41,29 @@ async function explainWithClaude(params: {
   apiKey: string
 }): Promise<string | null> {
   try {
-    const client = new Anthropic({ apiKey: params.apiKey })
+    const ai = new GoogleGenAI({ apiKey: params.apiKey })
 
     const recentLogs = params.logs.slice(-15).join('\n')
     const errorList = params.idlErrors.length > 0
       ? JSON.stringify(params.idlErrors.map((e) => ({ code: e.code, name: e.name, msg: e.msg })))
       : '(none available)'
 
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 256,
-      system: 'You are a Solana developer assistant. Be concise and technical.',
-      messages: [
-        {
-          role: 'user',
-          content:
-            `A Solana transaction failed.\n` +
-            `Program: ${params.programId}\n` +
-            `Error code: ${params.code}\n\n` +
-            `Known errors for this program:\n${errorList}\n\n` +
-            `Last transaction logs:\n${recentLogs}\n\n` +
-            `Explain in exactly 2 sentences what went wrong and what the caller should check.`,
-        },
-      ],
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents:
+        `A Solana transaction failed.\n` +
+        `Program: ${params.programId}\n` +
+        `Error code: ${params.code}\n\n` +
+        `Known errors for this program:\n${errorList}\n\n` +
+        `Last transaction logs:\n${recentLogs}\n\n` +
+        `Explain in exactly 2 sentences what went wrong and what the caller should check.`,
+      config: {
+        systemInstruction: 'You are a Solana developer assistant. Be concise and technical.',
+        maxOutputTokens: 256,
+      },
     })
 
-    const block = response.content.find((b) => b.type === 'text')
-    return block?.type === 'text' ? block.text : null
+    return response.text ?? null
   } catch {
     return null
   }
@@ -87,7 +83,8 @@ async function explainWithClaude(params: {
  * The `programId` is extracted from the instruction at `idx` inside the transaction
  * message, so no additional arguments are needed.
  *
- * A Claude API tier is intentionally omitted here — it will be wired up in Week 3.
+ * Intentionally synchronous — no Claude tier here. AI suggestions require an async
+ * call; use `explainError()` when you need the Claude fallback.
  */
 export function resolveError(tx: VersionedTransactionResponse): LyktaError | undefined {
   const rawErr = tx.meta?.err
@@ -178,16 +175,16 @@ export function resolveError(tx: VersionedTransactionResponse): LyktaError | und
  *     `code` field.  No network call required when the caller pre-fetches via
  *     `fetchIdlsForPrograms`.
  *  3. **Generic fallback** — raw error JSON with no name set.
- *  4. **Claude suggestion** — when `claudeApiKey` (or `ANTHROPIC_API_KEY` env var) is
- *     present and tiers 1–2 did not resolve a name, calls `explainWithClaude` and
- *     attaches the result as `error.suggestion`.  Never throws — Claude failure is
+ *  4. **Gemini suggestion** — when `geminiApiKey` (or `GEMINI_API_KEY` env var) is
+ *     present and tiers 1–2 did not resolve a name, calls `explainWithAI` and
+ *     attaches the result as `error.suggestion`.  Never throws — Gemini failure is
  *     silently swallowed so the caller always gets a `LyktaError`.
  */
 export async function explainError(
   tx: LyktaTransaction,
   _connection: Connection,
   idlMap?: Map<string, Idl | null>,
-  claudeApiKey?: string,
+  geminiApiKey?: string,
 ): Promise<LyktaError | undefined> {
   if (tx.success) return undefined
 
@@ -239,10 +236,10 @@ export async function explainError(
   const message = `Transaction failed with error: ${JSON.stringify(rawErr)}`
   const error: LyktaError = { code, programId, message }
 
-  const apiKey = claudeApiKey ?? process.env.ANTHROPIC_API_KEY
+  const apiKey = geminiApiKey ?? process.env.GEMINI_API_KEY
   if (apiKey) {
     const idlErrors = (idlMap?.get(programId)?.errors) ?? []
-    const suggestion = await explainWithClaude({ code, programId, idlErrors, logs, apiKey })
+    const suggestion = await explainWithAI({ code, programId, idlErrors, logs, apiKey })
     if (suggestion) error.suggestion = suggestion
   }
 
