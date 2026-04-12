@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { colors } from '../theme.js'
 
 interface CpiNode {
   programId: string
@@ -27,7 +28,7 @@ function CpiNodeRow({ node }: { node: CpiNode }) {
 
   const hasChildren = node.children.length > 0
   const label = node.programName ?? shortId(node.programId)
-  const accent = node.failed ? '#f87171' : '#4ade80'
+  const accent = node.failed ? colors.error : colors.success
   const icon = node.failed ? '✗' : '✓'
 
   return (
@@ -77,7 +78,7 @@ function CpiNodeRow({ node }: { node: CpiNode }) {
 
         {/* Truncation warning */}
         {node.logsTruncated && (
-          <span style={{ fontSize: '10px', color: '#fbbf24', marginLeft: '4px' }}>
+          <span style={{ fontSize: '10px', color: colors.warning, marginLeft: '4px' }}>
             [logs truncated]
           </span>
         )}
@@ -88,7 +89,7 @@ function CpiNodeRow({ node }: { node: CpiNode }) {
         <div style={{
           marginLeft: 32,
           fontSize: '11px',
-          color: '#fca5a5',
+          color: colors.error,
           opacity: 0.85,
           padding: '1px 0 4px',
         }}>

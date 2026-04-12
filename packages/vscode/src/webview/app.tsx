@@ -4,6 +4,7 @@ import { CpiTreePanel } from './panels/CpiTree.js'
 import { AccountDiffPanel } from './panels/AccountDiff.js'
 import { ComputeMeterPanel } from './panels/ComputeMeter.js'
 import { ErrorPanel } from './panels/ErrorPanel.js'
+import { colors } from './theme.js'
 
 // ── Types (mirrored from @lykta/core — no imports allowed in the webview bundle) ──
 
@@ -111,8 +112,8 @@ const S = {
     fontSize: '11px',
     fontWeight: 600,
     marginRight: '8px',
-    background: success ? '#166534' : '#7f1d1d',
-    color: success ? '#4ade80' : '#f87171',
+    background: success ? colors.successBg : colors.errorBg,
+    color: success ? colors.success : colors.error,
   }),
 
   tabs: {
@@ -201,7 +202,7 @@ function App() {
     return (
       <div style={S.root}>
         <div style={{ padding: '24px' }}>
-          <p style={{ color: '#f87171', marginBottom: '8px', fontWeight: 600 }}>
+          <p style={{ color: colors.error, marginBottom: '8px', fontWeight: 600 }}>
             ✗ Failed to decode transaction
           </p>
           <pre style={{
@@ -254,8 +255,8 @@ function App() {
               {id === 'error' && decoded.error && (
                 <span style={{
                   marginLeft: '5px',
-                  background: '#7f1d1d',
-                  color: '#f87171',
+                  background: colors.errorBg,
+                  color: colors.error,
                   borderRadius: '8px',
                   padding: '0 5px',
                   fontSize: '10px',

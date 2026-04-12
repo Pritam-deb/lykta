@@ -7,6 +7,8 @@ interface CuUsage {
   isOverBudget?: boolean
 }
 
+import { colors } from '../theme.js'
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function shortId(id: string): string {
@@ -14,9 +16,9 @@ function shortId(id: string): string {
 }
 
 function barColor(percent: number): string {
-  if (percent >= 80) return '#f87171'
-  if (percent >= 50) return '#fbbf24'
-  return '#4ade80'
+  if (percent >= 80) return colors.error
+  if (percent >= 50) return colors.warning
+  return colors.success
 }
 
 // ── Single bar row ────────────────────────────────────────────────────────────
@@ -61,7 +63,7 @@ function CuBar({ entry }: { entry: CuUsage }) {
 
       {/* Over-budget warning */}
       {entry.isOverBudget && (
-        <div style={{ fontSize: '10px', color: '#f87171', marginTop: '2px' }}>
+        <div style={{ fontSize: '10px', color: colors.error, marginTop: '2px' }}>
           ⚠ Compute budget exceeded
         </div>
       )}
@@ -96,11 +98,11 @@ export function ComputeMeterPanel({
       }}>
         {totalCu.toLocaleString()} total CU across {cuUsage.length} instruction(s)
         &nbsp;·&nbsp;
-        <span style={{ color: '#4ade80' }}>■</span> &lt;50%
+        <span style={{ color: colors.success }}>■</span> &lt;50%
         &nbsp;
-        <span style={{ color: '#fbbf24' }}>■</span> 50–80%
+        <span style={{ color: colors.warning }}>■</span> 50–80%
         &nbsp;
-        <span style={{ color: '#f87171' }}>■</span> &gt;80%
+        <span style={{ color: colors.error }}>■</span> &gt;80%
       </div>
 
       {cuUsage.map((entry) => (

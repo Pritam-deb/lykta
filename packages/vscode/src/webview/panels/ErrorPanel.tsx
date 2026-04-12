@@ -6,6 +6,8 @@ interface LyktaError {
   suggestion?: string
 }
 
+import { colors } from '../theme.js'
+
 function truncate(addr: string): string {
   return `${addr.slice(0, 8)}…${addr.slice(-8)}`
 }
@@ -25,8 +27,8 @@ export function ErrorPanel({ error }: { error: LyktaError | undefined }) {
       {/* Badge row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
         <span style={{
-          background: '#7f1d1d',
-          color: '#f87171',
+          background: colors.errorBg,
+          color: colors.error,
           borderRadius: '4px',
           padding: '2px 10px',
           fontSize: '11px',
@@ -80,7 +82,7 @@ export function ErrorPanel({ error }: { error: LyktaError | undefined }) {
           fontSize: '11px',
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
-          borderLeft: '3px solid #f87171',
+          borderLeft: `3px solid ${colors.errorBorder}`,
         }}>
           {error.message}
         </pre>
@@ -109,7 +111,7 @@ export function ErrorPanel({ error }: { error: LyktaError | undefined }) {
             borderRadius: '4px',
             fontSize: '12px',
             lineHeight: '1.6',
-            borderLeft: '3px solid #818cf8',
+            borderLeft: `3px solid ${colors.accentBorder}`,
           }}>
             {error.suggestion}
           </div>

@@ -19,6 +19,8 @@ interface TokenDiff {
   uiDelta: string
 }
 
+import { colors } from '../theme.js'
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function truncate(addr: string): string {
@@ -30,9 +32,9 @@ function lamportsToSol(lamports: number): string {
 }
 
 function deltaColor(delta: number): string {
-  if (delta > 0) return '#4ade80'
-  if (delta < 0) return '#f87171'
-  return 'var(--vscode-descriptionForeground)'
+  if (delta > 0) return colors.success
+  if (delta < 0) return colors.error
+  return colors.muted
 }
 
 function formatDelta(delta: number): string {
@@ -43,9 +45,9 @@ function formatDelta(delta: number): string {
 
 function uiDeltaColor(uiDelta: string): string {
   const n = parseFloat(uiDelta)
-  if (n > 0) return '#4ade80'
-  if (n < 0) return '#f87171'
-  return 'var(--vscode-descriptionForeground)'
+  if (n > 0) return colors.success
+  if (n < 0) return colors.error
+  return colors.muted
 }
 
 // ── Shared table styles ───────────────────────────────────────────────────────
