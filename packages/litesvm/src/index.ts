@@ -3,5 +3,6 @@
 
 export { LyktaTestContext } from './context.js'
 export type { LyktaTestResult } from './context.js'
-export { LyktaProvider } from './provider.js'
+export { LyktaProvider, findFailedNode, buildErrorSummary } from './provider.js'
 export { formatSummary } from './reporter.js'
+export type { SolScopeTestResult } from './reporter.js'

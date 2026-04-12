@@ -1,6 +1,19 @@
 import type { LyktaTransaction, LyktaError } from '@lykta/core'
 
 /**
+ * Structured result stored by LyktaProvider for every transaction processed
+ * via sendAndConfirm(). Retrieve it after the fact with provider.getResult(sig).
+ */
+export interface SolScopeTestResult {
+  /** Base58 transaction signature */
+  signature: string
+  /** Whether the transaction succeeded */
+  success: boolean
+  /** Formatted error summary printed on failure — null when success is true */
+  errorSummary: string | null
+}
+
+/**
  * Formats a plain-text observability summary for a LiteSVM test result.
  * Printed to stdout on transaction failure so developers immediately see the
  * CPI tree, account diffs, CU usage, and error explanation without leaving
