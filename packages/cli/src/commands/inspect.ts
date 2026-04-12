@@ -3,6 +3,22 @@ import { Connection } from '@solana/web3.js'
 import { decodeTransaction, type CpiNode, type LyktaTransaction } from '@lykta/core'
 import chalk from 'chalk'
 
+const KNOWN_PROGRAMS: Record<string, string> = {
+  '11111111111111111111111111111111': 'System Program',
+  'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf8Ss623VQ5DA': 'Token Program',
+  'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJe1bF': 'Associated Token Program',
+  'ComputeBudget111111111111111111111111111111': 'Compute Budget',
+  'Vote111111111111111111111111111111111111111p': 'Vote Program',
+  'BPFLoaderUpgradeab1e11111111111111111111111': 'BPF Loader',
+  'metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s': 'Metaplex Token Metadata',
+  'noopb9bkMVfRPU8AsbpTUg8AQkHtKwMYZiFUjNRtMmV': 'SPL Noop',
+  'cndy3Z4yapfJBmL3ShUp5exZkqLc1VPjwAkzBx4W3RR': 'Candy Machine v3',
+}
+
+function resolveProgram(programId: string, programName?: string): string {
+  return programName ?? KNOWN_PROGRAMS[programId] ?? programId
+}
+
 const CLUSTERS: Record<string, string> = {
   mainnet: 'https://api.mainnet-beta.solana.com',
   devnet: 'https://api.devnet.solana.com',
@@ -20,7 +36,7 @@ export const inspectCommand = new Command('inspect')
     const rpcUrl = opts.url ?? opts.rpc ?? CLUSTERS[opts.cluster] ?? CLUSTERS['devnet']!
     const connection = new Connection(rpcUrl, 'confirmed')
 
-    console.log(chalk.dim(`Fetching ${signature.slice(0, 8)}… on ${opts.url ?? opts.rpc ?? opts.cluster}`))
+    console.log(chalk.dim(`Fetching ${signature} on ${opts.url ?? opts.rpc ?? opts.cluster}`))
 
     try {
       const tx = await decodeTransaction(signature, connection)
@@ -54,7 +70,7 @@ export function renderInspect(tx: LyktaTransaction): void {
   for (const cu of tx.cuUsage) {
     const bar = buildCuBar(cu.percentUsed)
     const color = cu.percentUsed > 80 ? chalk.red : cu.percentUsed > 50 ? chalk.yellow : chalk.green
-    console.log(`  ${color(bar)} ${cu.percentUsed}%  ${cu.programId.slice(0, 8)}…  ${cu.consumed}/${cu.limit}`)
+    console.log(`  ${color(bar)} ${cu.percentUsed}%  ${resolveProgram(cu.programId)}  ${cu.consumed}/${cu.limit}`)
   }
 
   // Error (failed tx only)
@@ -70,9 +86,9 @@ export function renderInspect(tx: LyktaTransaction): void {
     for (const diff of changedAccounts) {
       const delta = diff.lamports.delta
       const sign = delta >= 0 ? chalk.green(`+${delta}`) : chalk.red(`${delta}`)
-      console.log(`  ${diff.address.slice(0, 8)}…  ${sign} lamports`)
+      console.log(`  ${diff.address}  ${sign} lamports`)
       if (diff.tokenBalance) {
-        console.log(`    token ${diff.tokenBalance.mint.slice(0, 8)}… ${diff.tokenBalance.pre} → ${diff.tokenBalance.post}`)
+        console.log(`    token ${diff.tokenBalance.mint}  ${diff.tokenBalance.pre} → ${diff.tokenBalance.post}`)
       }
     }
   }
@@ -82,7 +98,7 @@ export function renderInspect(tx: LyktaTransaction): void {
     console.log(chalk.bold('\nToken Diffs'))
     for (const diff of tx.tokenDiffs) {
       const sign = diff.delta >= 0n ? chalk.green(`+${diff.uiDelta}`) : chalk.red(diff.uiDelta)
-      console.log(`  ${diff.address.slice(0, 8)}…  ${sign}  mint ${diff.mint.slice(0, 8)}…`)
+      console.log(`  ${diff.address}  ${sign}  mint ${diff.mint}`)
     }
   }
 }
@@ -91,8 +107,8 @@ function printCpiTree(nodes: CpiNode[], indent = 0): void {
   for (const node of nodes) {
     const prefix = '  '.repeat(indent) + (indent === 0 ? '▶ ' : '└─ ')
     const label = node.instructionName
-      ? chalk.cyan(`${node.programName ?? node.programId.slice(0, 8)}`) + chalk.dim(`:${node.instructionName}`)
-      : chalk.cyan(node.programId.slice(0, 8) + '…')
+      ? chalk.cyan(resolveProgram(node.programId, node.programName)) + chalk.dim(`:${node.instructionName}`)
+      : chalk.cyan(resolveProgram(node.programId, node.programName))
     const failed = node.failed ? chalk.red(' ✗') : ''
     console.log(`${prefix}${label}${failed}`)
     if (node.children.length > 0) {
