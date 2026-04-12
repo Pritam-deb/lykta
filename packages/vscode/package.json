@@ -28,6 +28,10 @@
       {
         "command": "lykta.showCuFlamegraph",
         "title": "Lykta: Show Compute Unit Flamegraph"
+      },
+      {
+        "command": "lykta.explainError",
+        "title": "Lykta: Explain Transaction Error"
       }
     ],
     "configuration": {
@@ -48,8 +52,9 @@
     }
   },
   "scripts": {
-    "build": "tsup src/extension.ts --format cjs --dts --sourcemap --external vscode",
+    "build": "tsup src/extension.ts --format cjs --dts --sourcemap --external vscode && tsup src/webview/app.tsx --format iife --outDir dist/webview --platform browser --no-dts",
     "dev": "tsup src/extension.ts --format cjs --sourcemap --watch --external vscode",
+    "build:webview": "tsup src/webview/app.tsx --format iife --outDir dist/webview --platform browser --no-dts",
     "lint": "tsc --noEmit",
     "clean": "rm -rf dist"
   },
@@ -58,7 +63,11 @@
     "@solana/web3.js": "^1.95.0"
   },
   "devDependencies": {
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
     "@types/vscode": "^1.90.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
     "tsup": "^8.0.0",
     "typescript": "^5.5.0"
   }
