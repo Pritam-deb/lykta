@@ -25,6 +25,9 @@ const CLUSTERS: Record<string, string> = {
   localnet: 'http://127.0.0.1:8899',
 }
 
+const SQUADS_DEVNET_SIG =
+  '2dFnV9p5XudD1y4yyKfKi8dJiQgKXvGcajigh9scnzunWDMiR9ieoHw6Ge19pu9oTq5LuBSddwQQYivhccQF8h4Y'
+
 export const inspectCommand = new Command('inspect')
   .description('Decode and display a transaction — CPI tree, compute units, and account changes.')
   .argument('<signature>', 'Transaction signature')
@@ -32,6 +35,20 @@ export const inspectCommand = new Command('inspect')
   .option('-r, --rpc <url>', 'Custom RPC URL (overrides --cluster)')
   .option('-u, --url <url>', 'Custom RPC URL — alias for --rpc')
   .option('--json', 'Output raw decoded transaction as JSON')
+  .addHelpText(
+    'after',
+    `
+Examples:
+  # Squads multisig create — devnet (copy-paste ready)
+  $ lykta inspect ${SQUADS_DEVNET_SIG}
+
+  # Same transaction on mainnet-beta
+  $ lykta inspect <sig> --cluster mainnet
+
+  # Machine-readable JSON output
+  $ lykta inspect ${SQUADS_DEVNET_SIG} --json | jq '.cpiTree'
+`,
+  )
   .action(async (signature: string, opts: { cluster: string; rpc?: string; url?: string; json?: boolean }) => {
     const rpcUrl = opts.url ?? opts.rpc ?? CLUSTERS[opts.cluster] ?? CLUSTERS['devnet']!
     const connection = new Connection(rpcUrl, 'confirmed')

@@ -81,9 +81,12 @@ importers:
 
   packages/cli:
     dependencies:
-      '@lykta/core':
-        specifier: workspace:*
-        version: link:../core
+      '@coral-xyz/anchor':
+        specifier: ^0.30.0
+        version: 0.30.1(bufferutil@4.1.0)(typescript@5.9.3)
+      '@google/genai':
+        specifier: ^0.7.0
+        version: 0.7.0(bufferutil@4.1.0)
       '@solana/web3.js':
         specifier: ^1.95.0
         version: 1.98.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)
