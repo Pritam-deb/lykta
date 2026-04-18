@@ -26,6 +26,7 @@
     "prepublishOnly": "pnpm build"
   },
   "dependencies": {
+    "@lykta/core": "workspace:*",
     "@coral-xyz/anchor": "^0.30.0",
     "@google/genai": "^0.7.0",
     "@solana/web3.js": "^1.95.0",

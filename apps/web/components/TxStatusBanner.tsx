@@ -31,8 +31,8 @@ export default function TxStatusBanner({
       className={[
         "flex flex-wrap items-center gap-x-6 gap-y-1 rounded border-l-4 px-4 py-3 text-sm",
         success
-          ? "border-green-500 bg-green-50 text-green-900"
-          : "border-red-500 bg-red-50 text-red-900",
+          ? "border-green-500 bg-green-50 text-green-900 dark:bg-green-950/30 dark:text-green-200"
+          : "border-red-500 bg-red-50 text-red-900 dark:bg-red-950/30 dark:text-red-200",
       ].join(" ")}
     >
       {/* Status badge */}
@@ -40,8 +40,8 @@ export default function TxStatusBanner({
         className={[
           "rounded-full px-2.5 py-0.5 text-xs font-semibold",
           success
-            ? "bg-green-200 text-green-800"
-            : "bg-red-200 text-red-800",
+            ? "bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200"
+            : "bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-200",
         ].join(" ")}
       >
         {success ? "Success" : "Failed"}

@@ -54,7 +54,7 @@ export default function TxHeader({ sig, cluster }: Props) {
           <select
             value={cluster}
             onChange={onClusterChange}
-            className="rounded border border-gray-200 bg-white px-2 py-1 text-xs text-gray-600 hover:border-gray-300 focus:outline-none"
+            className="rounded border border-gray-200 bg-white px-2 py-1 text-xs text-gray-600 hover:border-gray-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600"
           >
             {CLUSTERS.map((c) => (
               <option key={c.value} value={c.value}>
@@ -68,7 +68,7 @@ export default function TxHeader({ sig, cluster }: Props) {
             href={explorerUrl(sig, cluster)}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded border border-gray-200 px-2 py-1 text-xs text-gray-500 hover:border-gray-300 hover:text-gray-700"
+            className="rounded border border-gray-200 px-2 py-1 text-xs text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:border-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-200"
           >
             Explorer ↗
           </a>
@@ -76,14 +76,14 @@ export default function TxHeader({ sig, cluster }: Props) {
           {/* Copy link */}
           <button
             onClick={copyLink}
-            className="rounded border border-gray-200 px-2 py-1 text-xs text-gray-500 hover:border-gray-300 hover:text-gray-700"
+            className="rounded border border-gray-200 px-2 py-1 text-xs text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:border-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-200"
           >
             {copied ? "Copied!" : "Copy link"}
           </button>
         </div>
       </div>
 
-      <p className="break-all font-mono text-xs text-gray-500">{sig}</p>
+      <p className="break-all font-mono text-xs text-gray-500 dark:text-gray-400">{sig}</p>
     </div>
   );
 }

@@ -23,7 +23,7 @@ function Bar({
 }) {
   const width = Math.min(percent, 100);
   return (
-    <div className="h-2 w-full rounded-full bg-gray-100">
+    <div className="h-2 w-full rounded-full bg-gray-100 dark:bg-gray-700">
       <div
         className={`h-2 rounded-full transition-all ${barColor(percent, isOverBudget)}`}
         style={{ width: `${width}%` }}
@@ -40,7 +40,7 @@ interface Props {
 export default function ComputeMeter({ cuUsage, totalCu }: Props) {
   if (cuUsage.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-gray-400">No compute data</p>
+      <p className="py-8 text-center text-sm text-gray-400 dark:text-gray-500">No compute data</p>
     );
   }
 
@@ -49,10 +49,10 @@ export default function ComputeMeter({ cuUsage, totalCu }: Props) {
   return (
     <div className="flex flex-col gap-4">
       {/* Total tx utilization */}
-      <div className="rounded border border-gray-200 p-4">
+      <div className="rounded border border-gray-200 p-4 dark:border-gray-700">
         <div className="mb-2 flex items-baseline justify-between text-xs">
-          <span className="font-medium text-gray-700">Transaction total</span>
-          <span className="font-mono text-gray-500">
+          <span className="font-medium text-gray-700 dark:text-gray-300">Transaction total</span>
+          <span className="font-mono text-gray-500 dark:text-gray-400">
             {totalCu.toLocaleString()} / {TX_LIMIT.toLocaleString()} CU
           </span>
         </div>
@@ -60,34 +60,34 @@ export default function ComputeMeter({ cuUsage, totalCu }: Props) {
       </div>
 
       {/* Per-instruction rows */}
-      <div className="overflow-x-auto rounded border border-gray-200">
+      <div className="overflow-x-auto rounded border border-gray-200 dark:border-gray-700">
         <table className="w-full text-xs">
           <thead>
-            <tr className="border-b border-gray-200 bg-gray-50 text-left text-gray-500">
+            <tr className="border-b border-gray-200 bg-gray-50 text-left text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
               <th className="px-4 py-2 font-medium">Program</th>
               <th className="px-4 py-2 font-medium">Consumed</th>
               <th className="px-4 py-2 font-medium">Limit</th>
               <th className="w-40 px-4 py-2 font-medium">Usage</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
             {cuUsage.map((cu) => (
               <tr
                 key={cu.instructionIndex}
-                className={cu.isOverBudget ? "bg-red-50" : "hover:bg-gray-50"}
+                className={cu.isOverBudget ? "bg-red-50 dark:bg-red-950/20" : "hover:bg-gray-50 dark:hover:bg-gray-800/50"}
               >
-                <td className="px-4 py-2 font-mono text-gray-700">
+                <td className="px-4 py-2 font-mono text-gray-700 dark:text-gray-300">
                   {truncate(cu.programId)}
                   {cu.isOverBudget && (
-                    <span className="ml-2 rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-medium text-red-700">
+                    <span className="ml-2 rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-medium text-red-700 dark:bg-red-900 dark:text-red-300">
                       over budget
                     </span>
                   )}
                 </td>
-                <td className="px-4 py-2 font-mono text-gray-600">
+                <td className="px-4 py-2 font-mono text-gray-600 dark:text-gray-400">
                   {cu.consumed.toLocaleString()}
                 </td>
-                <td className="px-4 py-2 font-mono text-gray-600">
+                <td className="px-4 py-2 font-mono text-gray-600 dark:text-gray-400">
                   {cu.limit.toLocaleString()}
                 </td>
                 <td className="px-4 py-2">
@@ -96,7 +96,7 @@ export default function ComputeMeter({ cuUsage, totalCu }: Props) {
                       percent={cu.percentUsed}
                       isOverBudget={cu.isOverBudget ?? false}
                     />
-                    <span className="w-10 shrink-0 text-right font-mono text-gray-500">
+                    <span className="w-10 shrink-0 text-right font-mono text-gray-500 dark:text-gray-400">
                       {Math.round(cu.percentUsed)}%
                     </span>
                   </div>

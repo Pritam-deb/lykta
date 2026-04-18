@@ -43,7 +43,7 @@ export default function TxTabs({
   return (
     <div className="flex flex-col gap-4">
       {/* Tab bar */}
-      <div className="flex border-b border-gray-200">
+      <div className="flex border-b border-gray-200 dark:border-gray-700">
         {TABS.map((tab) => (
           <button
             key={tab.id}
@@ -51,8 +51,8 @@ export default function TxTabs({
             className={[
               "px-4 py-2 text-sm font-medium transition-colors",
               active === tab.id
-                ? "border-b-2 border-black text-black"
-                : "text-gray-500 hover:text-gray-800",
+                ? "border-b-2 border-black text-black dark:border-white dark:text-white"
+                : "text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100",
             ].join(" ")}
           >
             {tab.label}
@@ -80,7 +80,7 @@ export default function TxTabs({
       )}
 
       {active === "raw" && (
-        <pre className="overflow-x-auto rounded border border-gray-200 bg-gray-950 p-4 text-xs leading-relaxed text-gray-100">
+        <pre className="overflow-x-auto rounded border border-gray-200 bg-gray-950 p-4 text-xs leading-relaxed text-gray-100 dark:border-gray-700">
           {rawJson}
         </pre>
       )}

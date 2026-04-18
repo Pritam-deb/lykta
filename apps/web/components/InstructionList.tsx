@@ -12,13 +12,13 @@ function truncate(address: string): string {
 function IdlBadge({ matched }: { matched: boolean }) {
   if (matched) {
     return (
-      <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700">
+      <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700 dark:bg-green-900/40 dark:text-green-300">
         decoded
       </span>
     );
   }
   return (
-    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500">
+    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500 dark:bg-gray-700 dark:text-gray-400">
       no IDL
     </span>
   );
@@ -27,7 +27,7 @@ function IdlBadge({ matched }: { matched: boolean }) {
 function ChevronIcon({ open }: { open: boolean }) {
   return (
     <svg
-      className={`h-3 w-3 shrink-0 text-gray-400 transition-transform ${open ? "rotate-90" : ""}`}
+      className={`h-3 w-3 shrink-0 text-gray-400 transition-transform dark:text-gray-500 ${open ? "rotate-90" : ""}`}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -47,7 +47,7 @@ export default function InstructionList({ decodedInstructions }: Props) {
 
   if (decodedInstructions.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-gray-400">
+      <p className="py-8 text-center text-sm text-gray-400 dark:text-gray-500">
         No instructions decoded
       </p>
     );
@@ -62,32 +62,32 @@ export default function InstructionList({ decodedInstructions }: Props) {
   }
 
   return (
-    <div className="overflow-x-auto rounded border border-gray-200">
+    <div className="overflow-x-auto rounded border border-gray-200 dark:border-gray-700">
       {decodedInstructions.map((ix, i) => {
         const isOpen = expanded.has(i);
         const programLabel =
           ix.node.programName ?? truncate(ix.node.programId);
 
         return (
-          <div key={i} className="border-b border-gray-100 last:border-0">
+          <div key={i} className="border-b border-gray-100 last:border-0 dark:border-gray-700">
             {/* Collapsed row */}
             <button
               onClick={() => toggle(i)}
-              className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-gray-50"
+              className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50"
             >
               <ChevronIcon open={isOpen} />
 
-              <span className="w-6 shrink-0 text-center font-mono text-xs text-gray-400">
+              <span className="w-6 shrink-0 text-center font-mono text-xs text-gray-400 dark:text-gray-500">
                 {i}
               </span>
 
-              <span className="min-w-[140px] font-mono text-xs font-medium text-gray-700">
+              <span className="min-w-[140px] font-mono text-xs font-medium text-gray-700 dark:text-gray-300">
                 {programLabel}
               </span>
 
-              <span className="flex-1 text-xs text-gray-600">
+              <span className="flex-1 text-xs text-gray-600 dark:text-gray-400">
                 {ix.name ?? (
-                  <span className="italic text-gray-400">unknown</span>
+                  <span className="italic text-gray-400 dark:text-gray-500">unknown</span>
                 )}
               </span>
 
@@ -95,7 +95,7 @@ export default function InstructionList({ decodedInstructions }: Props) {
             </button>
 
             {isOpen && (
-              <div className="border-t border-gray-100 bg-gray-50 p-4">
+              <div className="border-t border-gray-100 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
                 <InstructionDetail ix={ix} />
               </div>
             )}

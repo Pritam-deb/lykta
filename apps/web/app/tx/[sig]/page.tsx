@@ -146,9 +146,9 @@ export default async function TxPage({ params, searchParams }: Props) {
         ? "Invalid signature"
         : "RPC error";
     content = (
-      <div className="rounded border border-red-200 bg-red-50 p-4 text-sm">
-        <p className="font-semibold text-red-900">{headline}</p>
-        <p className="mt-1 font-mono text-xs text-red-700">{message}</p>
+      <div className="rounded border border-red-200 bg-red-50 p-4 text-sm dark:border-red-900 dark:bg-red-950/30">
+        <p className="font-semibold text-red-900 dark:text-red-200">{headline}</p>
+        <p className="mt-1 font-mono text-xs text-red-700 dark:text-red-400">{message}</p>
       </div>
     );
   }

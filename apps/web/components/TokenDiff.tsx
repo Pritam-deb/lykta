@@ -32,13 +32,12 @@ function formatAmount(raw: string, decimals: number): string {
 
 function UiDeltaCell({ uiDelta }: { uiDelta: string }) {
   if (uiDelta.startsWith("-")) {
-    return <span className="text-red-500">{uiDelta}</span>;
+    return <span className="text-red-500 dark:text-red-400">{uiDelta}</span>;
   }
-  // Treat "0", "0.000000", etc. as neutral rather than positive
   if (/^0(\.0+)?$/.test(uiDelta)) {
-    return <span className="text-gray-400">{uiDelta}</span>;
+    return <span className="text-gray-400 dark:text-gray-500">{uiDelta}</span>;
   }
-  return <span className="text-green-600">+{uiDelta}</span>;
+  return <span className="text-green-600 dark:text-green-400">+{uiDelta}</span>;
 }
 
 function CopyButton({ text }: { text: string }) {
@@ -54,7 +53,7 @@ function CopyButton({ text }: { text: string }) {
     <button
       onClick={copy}
       title={text}
-      className="ml-1 rounded px-1 py-0.5 text-[10px] text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+      className="ml-1 rounded px-1 py-0.5 text-[10px] text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300"
     >
       copy
     </button>
@@ -68,17 +67,17 @@ interface Props {
 export default function TokenDiffTable({ tokenDiffs }: Props) {
   if (tokenDiffs.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-gray-400">
+      <p className="py-8 text-center text-sm text-gray-400 dark:text-gray-500">
         No token transfers
       </p>
     );
   }
 
   return (
-    <div className="overflow-x-auto rounded border border-gray-200">
+    <div className="overflow-x-auto rounded border border-gray-200 dark:border-gray-700">
       <table className="w-full text-xs">
         <thead>
-          <tr className="border-b border-gray-200 bg-gray-50 text-left text-gray-500">
+          <tr className="border-b border-gray-200 bg-gray-50 text-left text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
             <th className="px-4 py-2 font-medium">Mint</th>
             <th className="px-4 py-2 font-medium">Owner</th>
             <th className="px-4 py-2 font-medium">Pre</th>
@@ -86,20 +85,20 @@ export default function TokenDiffTable({ tokenDiffs }: Props) {
             <th className="px-4 py-2 font-medium">Delta</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
           {tokenDiffs.map((diff) => (
-            <tr key={`${diff.mint}-${diff.accountIndex}`} className="hover:bg-gray-50">
-              <td className="px-4 py-2 font-mono text-gray-700">
+            <tr key={`${diff.mint}-${diff.accountIndex}`} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+              <td className="px-4 py-2 font-mono text-gray-700 dark:text-gray-300">
                 {truncate(diff.mint)}
                 <CopyButton text={diff.mint} />
               </td>
-              <td className="px-4 py-2 font-mono text-gray-600">
+              <td className="px-4 py-2 font-mono text-gray-600 dark:text-gray-400">
                 {truncate(diff.owner)}
               </td>
-              <td className="px-4 py-2 font-mono text-gray-600">
+              <td className="px-4 py-2 font-mono text-gray-600 dark:text-gray-400">
                 {formatAmount(diff.preAmount, diff.decimals)}
               </td>
-              <td className="px-4 py-2 font-mono text-gray-600">
+              <td className="px-4 py-2 font-mono text-gray-600 dark:text-gray-400">
                 {formatAmount(diff.postAmount, diff.decimals)}
               </td>
               <td className="px-4 py-2 font-mono font-medium">
