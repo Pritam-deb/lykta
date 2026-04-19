@@ -113,11 +113,15 @@ export default async function TxPage({ params, searchParams }: Props) {
     content = (
       <>
         <TxStatusBanner
+          sig={params.sig}
+          cluster={cluster}
           success={tx.success}
           fee={tx.fee}
           slot={tx.slot}
           blockTime={tx.blockTime}
           totalCu={tx.totalCu}
+          ixCount={tx.decodedInstructions.length}
+          tokenCount={tx.tokenDiffs.length}
         />
         <ErrorCard error={tx.error} />
         <TxTabs
@@ -146,17 +150,24 @@ export default async function TxPage({ params, searchParams }: Props) {
         ? "Invalid signature"
         : "RPC error";
     content = (
-      <div className="rounded border border-red-200 bg-red-50 p-4 text-sm dark:border-red-900 dark:bg-red-950/30">
-        <p className="font-semibold text-red-900 dark:text-red-200">{headline}</p>
-        <p className="mt-1 font-mono text-xs text-red-700 dark:text-red-400">{message}</p>
+      <div style={{
+        background: "color-mix(in oklch, var(--red) 6%, transparent)",
+        border: "1px solid color-mix(in oklch, var(--red) 30%, transparent)",
+        borderLeft: "3px solid var(--red)",
+        borderRadius: 8, padding: 16,
+      }}>
+        <p style={{ fontFamily: "var(--font-dm-sans), sans-serif", fontWeight: 700, fontSize: 14, color: "var(--red)", marginBottom: 6 }}>{headline}</p>
+        <p style={{ fontFamily: "var(--font-jetbrains-mono), monospace", fontSize: 12, color: "var(--text-2)" }}>{message}</p>
       </div>
     );
   }
 
   return (
-    <main className="mx-auto flex max-w-5xl flex-col gap-6 p-8">
+    <>
       <TxHeader sig={params.sig} cluster={cluster} />
-      {content}
-    </main>
+      <main style={{ position: "relative", zIndex: 1, maxWidth: 1280, margin: "0 auto", padding: "clamp(1.5rem, 3vw, 2.5rem) clamp(1rem, 3vw, 2.5rem)" }}>
+        {content}
+      </main>
+    </>
   );
 }

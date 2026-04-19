@@ -30,7 +30,15 @@ export default function ThemeToggle() {
     <button
       onClick={cycle}
       title={`Theme: ${LABELS[theme]} — click to cycle`}
-      className="fixed right-4 top-4 z-50 flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 shadow-sm transition-colors hover:border-gray-300 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-100"
+      style={{
+      position: "fixed", bottom: 20, right: 20, zIndex: 9999,
+      display: "flex", alignItems: "center", gap: 6,
+      borderRadius: 100, padding: "6px 12px",
+      background: "var(--bg-2)", border: "1px solid var(--border-2)",
+      fontSize: 12, fontWeight: 500, color: "var(--text-2)",
+      cursor: "pointer", boxShadow: "0 4px 12px var(--shadow)",
+      fontFamily: "var(--font-dm-sans), sans-serif",
+    }}
     >
       <span>{ICONS[theme]}</span>
       <span>{LABELS[theme]}</span>

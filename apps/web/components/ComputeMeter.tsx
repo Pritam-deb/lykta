@@ -7,31 +7,6 @@ function truncate(address: string): string {
   return `${address.slice(0, 8)}…${address.slice(-4)}`;
 }
 
-function barColor(percentUsed: number, isOverBudget: boolean): string {
-  if (isOverBudget) return "bg-red-900";
-  if (percentUsed > 80) return "bg-red-500";
-  if (percentUsed >= 50) return "bg-amber-400";
-  return "bg-green-500";
-}
-
-function Bar({
-  percent,
-  isOverBudget,
-}: {
-  percent: number;
-  isOverBudget: boolean;
-}) {
-  const width = Math.min(percent, 100);
-  return (
-    <div className="h-2 w-full rounded-full bg-gray-100 dark:bg-gray-700">
-      <div
-        className={`h-2 rounded-full transition-all ${barColor(percent, isOverBudget)}`}
-        style={{ width: `${width}%` }}
-      />
-    </div>
-  );
-}
-
 interface Props {
   cuUsage: CuUsage[];
   totalCu: number;
@@ -40,71 +15,74 @@ interface Props {
 export default function ComputeMeter({ cuUsage, totalCu }: Props) {
   if (cuUsage.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-gray-400 dark:text-gray-500">No compute data</p>
+      <div style={{ padding: 24, textAlign: "center", paddingTop: 48 }}>
+        <p style={{ fontFamily: "var(--font-dm-sans), sans-serif", fontSize: 14, color: "var(--text-3)" }}>No compute data</p>
+      </div>
     );
   }
 
-  const txPercent = (totalCu / TX_LIMIT) * 100;
+  const txPct = Math.min((totalCu / TX_LIMIT) * 100, 100);
+  const utilColor = txPct > 80 ? "var(--red)" : txPct > 50 ? "var(--amber)" : "var(--green)";
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Total tx utilization */}
-      <div className="rounded border border-gray-200 p-4 dark:border-gray-700">
-        <div className="mb-2 flex items-baseline justify-between text-xs">
-          <span className="font-medium text-gray-700 dark:text-gray-300">Transaction total</span>
-          <span className="font-mono text-gray-500 dark:text-gray-400">
-            {totalCu.toLocaleString()} / {TX_LIMIT.toLocaleString()} CU
-          </span>
-        </div>
-        <Bar percent={txPercent} isOverBudget={false} />
+    <div style={{ padding: 24 }}>
+      <h3 style={{ fontFamily: "var(--font-space-grotesk), sans-serif", fontWeight: 700, fontSize: 16, color: "var(--text-1)", marginBottom: 4 }}>Compute Telemetry</h3>
+      <p style={{ fontFamily: "var(--font-dm-sans), sans-serif", fontSize: 13, color: "var(--text-3)", marginBottom: 28 }}>Per-program compute unit breakdown</p>
+
+      {/* Summary cards */}
+      <div style={{ display: "flex", gap: 16, marginBottom: 32, flexWrap: "wrap" }}>
+        {[
+          { label: "CONSUMED",    value: totalCu.toLocaleString(),  unit: "CU",         color: "var(--cyan)"    },
+          { label: "BUDGET",      value: TX_LIMIT.toLocaleString(), unit: "CU",         color: "var(--text-2)"  },
+          { label: "UTILIZATION", value: `${Math.round(txPct)}%`,  unit: "of budget",  color: utilColor        },
+        ].map(card => (
+          <div key={card.label} style={{ background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 10, padding: "16px 20px", flex: 1, minWidth: 140 }}>
+            <div style={{ fontFamily: "var(--font-dm-sans), sans-serif", fontSize: 11.5, color: "var(--text-3)", letterSpacing: "0.06em", marginBottom: 8 }}>{card.label}</div>
+            <div style={{ fontFamily: "var(--font-space-grotesk), sans-serif", fontWeight: 700, fontSize: 26, color: card.color, letterSpacing: "-0.03em" }}>{card.value}</div>
+            <div style={{ fontFamily: "var(--font-dm-sans), sans-serif", fontSize: 12, color: "var(--text-3)", marginTop: 3 }}>{card.unit}</div>
+          </div>
+        ))}
       </div>
 
-      {/* Per-instruction rows */}
-      <div className="overflow-x-auto rounded border border-gray-200 dark:border-gray-700">
-        <table className="w-full text-xs">
-          <thead>
-            <tr className="border-b border-gray-200 bg-gray-50 text-left text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
-              <th className="px-4 py-2 font-medium">Program</th>
-              <th className="px-4 py-2 font-medium">Consumed</th>
-              <th className="px-4 py-2 font-medium">Limit</th>
-              <th className="w-40 px-4 py-2 font-medium">Usage</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-            {cuUsage.map((cu) => (
-              <tr
-                key={cu.instructionIndex}
-                className={cu.isOverBudget ? "bg-red-50 dark:bg-red-950/20" : "hover:bg-gray-50 dark:hover:bg-gray-800/50"}
-              >
-                <td className="px-4 py-2 font-mono text-gray-700 dark:text-gray-300">
+      {/* Budget bar */}
+      <div style={{ marginBottom: 32 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+          <span style={{ fontFamily: "var(--font-dm-sans), sans-serif", fontSize: 13, color: "var(--text-2)" }}>Budget utilization</span>
+          <span style={{ fontFamily: "var(--font-jetbrains-mono), monospace", fontSize: 13, color: "var(--text-1)" }}>{Math.round(txPct)}%</span>
+        </div>
+        <div style={{ height: 8, background: "var(--bg-base)", borderRadius: 4, overflow: "hidden" }}>
+          <div style={{ height: "100%", borderRadius: 4, width: `${txPct}%`, background: "linear-gradient(90deg, var(--cyan), var(--green))", transition: "width 1s ease" }} />
+        </div>
+      </div>
+
+      {/* Per-program breakdown */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {cuUsage.map((cu, i) => (
+          <div key={cu.instructionIndex}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontFamily: "var(--font-dm-sans), sans-serif", fontSize: 13.5, color: "var(--text-1)" }}>
                   {truncate(cu.programId)}
-                  {cu.isOverBudget && (
-                    <span className="ml-2 rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-medium text-red-700 dark:bg-red-900 dark:text-red-300">
-                      over budget
-                    </span>
-                  )}
-                </td>
-                <td className="px-4 py-2 font-mono text-gray-600 dark:text-gray-400">
-                  {cu.consumed.toLocaleString()}
-                </td>
-                <td className="px-4 py-2 font-mono text-gray-600 dark:text-gray-400">
-                  {cu.limit.toLocaleString()}
-                </td>
-                <td className="px-4 py-2">
-                  <div className="flex items-center gap-2">
-                    <Bar
-                      percent={cu.percentUsed}
-                      isOverBudget={cu.isOverBudget ?? false}
-                    />
-                    <span className="w-10 shrink-0 text-right font-mono text-gray-500 dark:text-gray-400">
-                      {Math.round(cu.percentUsed)}%
-                    </span>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </span>
+                {cu.isOverBudget && (
+                  <span style={{ fontFamily: "var(--font-dm-sans), sans-serif", fontSize: 10.5, color: "var(--red)", background: "color-mix(in oklch, var(--red) 12%, transparent)", padding: "1px 6px", borderRadius: 4 }}>
+                    over budget
+                  </span>
+                )}
+              </div>
+              <span style={{ fontFamily: "var(--font-jetbrains-mono), monospace", fontSize: 13, color: "var(--text-1)" }}>
+                {cu.consumed.toLocaleString()} CU
+              </span>
+            </div>
+            <div style={{ height: 5, background: "var(--bg-base)", borderRadius: 3, overflow: "hidden" }}>
+              <div style={{
+                height: "100%", borderRadius: 3,
+                width: `${Math.min(cu.percentUsed, 100)}%`,
+                background: cu.isOverBudget ? "var(--red)" : i === 0 ? "var(--cyan)" : i === 1 ? "var(--green)" : "var(--border-2)",
+              }} />
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

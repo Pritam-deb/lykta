@@ -12,18 +12,6 @@ function lamportsToSol(lamports: number): string {
     .replace(/\.$/, "");
 }
 
-function DeltaCell({ delta }: { delta: number }) {
-  if (delta === 0) {
-    return <span className="text-gray-400 dark:text-gray-500">0</span>;
-  }
-  if (delta > 0) {
-    return (
-      <span className="text-green-600 dark:text-green-400">+{lamportsToSol(delta)}</span>
-    );
-  }
-  return <span className="text-red-500 dark:text-red-400">{lamportsToSol(delta)}</span>;
-}
-
 interface Props {
   accountDiffs: AccountDiff[];
 }
@@ -31,42 +19,48 @@ interface Props {
 export default function AccountDiffTable({ accountDiffs }: Props) {
   if (accountDiffs.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-gray-400 dark:text-gray-500">
-        No SOL balance changes
-      </p>
+      <div style={{ padding: 24, textAlign: "center", paddingTop: 48 }}>
+        <p style={{ fontFamily: "var(--font-dm-sans), sans-serif", fontSize: 14, color: "var(--text-3)" }}>No SOL balance changes</p>
+      </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto rounded border border-gray-200 dark:border-gray-700">
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="border-b border-gray-200 bg-gray-50 text-left text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
-            <th className="px-4 py-2 font-medium">Account</th>
-            <th className="px-4 py-2 font-medium">Pre (SOL)</th>
-            <th className="px-4 py-2 font-medium">Post (SOL)</th>
-            <th className="px-4 py-2 font-medium">Delta</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-          {accountDiffs.map((diff) => (
-            <tr key={diff.address} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-              <td className="px-4 py-2 font-mono text-gray-700 dark:text-gray-300">
-                {truncate(diff.address)}
-              </td>
-              <td className="px-4 py-2 font-mono text-gray-600 dark:text-gray-400">
-                {lamportsToSol(diff.lamports.pre)}
-              </td>
-              <td className="px-4 py-2 font-mono text-gray-600 dark:text-gray-400">
-                {lamportsToSol(diff.lamports.post)}
-              </td>
-              <td className="px-4 py-2 font-mono font-medium">
-                <DeltaCell delta={diff.lamports.delta} />
-              </td>
+    <div style={{ padding: 24 }}>
+      <h3 style={{ fontFamily: "var(--font-space-grotesk), sans-serif", fontWeight: 700, fontSize: 16, color: "var(--text-1)", marginBottom: 4 }}>Account Diffs</h3>
+      <p style={{ fontFamily: "var(--font-dm-sans), sans-serif", fontSize: 13, color: "var(--text-3)", marginBottom: 20 }}>{accountDiffs.length} account{accountDiffs.length !== 1 ? "s" : ""} modified · lamport changes</p>
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: "var(--font-jetbrains-mono), monospace", fontSize: 13 }}>
+          <thead>
+            <tr style={{ borderBottom: "1px solid var(--border)" }}>
+              {["Account", "Before (SOL)", "After (SOL)", "Δ SOL"].map(h => (
+                <th key={h} style={{ padding: "8px 12px", textAlign: "left", fontFamily: "var(--font-dm-sans), sans-serif", fontSize: 11.5, color: "var(--text-3)", fontWeight: 600, letterSpacing: "0.05em", whiteSpace: "nowrap" }}>{h}</th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {accountDiffs.map((diff) => {
+              const delta = diff.lamports.delta;
+              const pos = delta > 0;
+              return (
+                <tr
+                  key={diff.address}
+                  style={{ borderBottom: "1px solid var(--border)" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--bg-2)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                >
+                  <td style={{ padding: "10px 12px", color: "var(--text-2)" }}>{truncate(diff.address)}</td>
+                  <td style={{ padding: "10px 12px", color: "var(--text-2)" }}>{lamportsToSol(diff.lamports.pre)}</td>
+                  <td style={{ padding: "10px 12px", color: "var(--text-2)" }}>{lamportsToSol(diff.lamports.post)}</td>
+                  <td style={{ padding: "10px 12px", fontWeight: 600, color: delta === 0 ? "var(--text-3)" : pos ? "var(--green)" : "var(--red)" }}>
+                    {delta === 0 ? "—" : (pos ? "+" : "") + lamportsToSol(delta)}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

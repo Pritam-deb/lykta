@@ -1,9 +1,15 @@
+import type { Cluster } from "@/components/TxHeader";
+
 interface Props {
+  sig: string;
+  cluster: Cluster;
   success: boolean;
   fee: number;
   slot: number;
   blockTime: number | null;
   totalCu: number;
+  ixCount: number;
+  tokenCount: number;
 }
 
 function lamportsToSol(lamports: number): string {
@@ -13,59 +19,95 @@ function lamportsToSol(lamports: number): string {
     .replace(/\.$/, "");
 }
 
+function StatusBadge({ success }: { success: boolean }) {
+  return (
+    <div style={{
+      display: "inline-flex", alignItems: "center", gap: 6,
+      background: success
+        ? "color-mix(in oklch, var(--green) 12%, transparent)"
+        : "color-mix(in oklch, var(--red) 12%, transparent)",
+      border: `1px solid ${success
+        ? "color-mix(in oklch, var(--green) 35%, transparent)"
+        : "color-mix(in oklch, var(--red) 35%, transparent)"}`,
+      color: success ? "var(--green)" : "var(--red)",
+      borderRadius: 6, padding: "4px 10px",
+      fontFamily: "var(--font-dm-sans), sans-serif", fontWeight: 700, fontSize: 12.5,
+    }}>
+      <span style={{ fontSize: 10 }}>{success ? "✓" : "✗"}</span>
+      {success ? "Success" : "Failed"}
+    </div>
+  );
+}
+
 export default function TxStatusBanner({
-  success,
-  fee,
-  slot,
-  blockTime,
-  totalCu,
+  sig, cluster, success, fee, slot, blockTime, totalCu, ixCount, tokenCount,
 }: Props) {
-  const time =
-    blockTime !== null
-      ? new Date(blockTime * 1000).toUTCString()
-      : "Unknown";
+  const time = blockTime !== null
+    ? new Date(blockTime * 1000).toUTCString().replace("GMT", "UTC")
+    : "Unknown";
+
+  const shortSig = sig.slice(0, 8) + "…" + sig.slice(-8);
+
+  const chips = [
+    { label: `${totalCu.toLocaleString()} CU consumed`, color: "var(--cyan)" },
+    { label: `${ixCount} instruction${ixCount !== 1 ? "s" : ""}`, color: "var(--text-3)" },
+    { label: `${tokenCount} token transfer${tokenCount !== 1 ? "s" : ""}`, color: tokenCount > 0 ? "var(--amber)" : "var(--text-3)" },
+  ];
 
   return (
-    <div
-      data-testid="tx-status-banner"
-      className={[
-        "flex flex-wrap items-center gap-x-6 gap-y-1 rounded border-l-4 px-4 py-3 text-sm",
-        success
-          ? "border-green-500 bg-green-50 text-green-900 dark:bg-green-950/30 dark:text-green-200"
-          : "border-red-500 bg-red-50 text-red-900 dark:bg-red-950/30 dark:text-red-200",
-      ].join(" ")}
-    >
-      {/* Status badge */}
-      <span
-        className={[
-          "rounded-full px-2.5 py-0.5 text-xs font-semibold",
-          success
-            ? "bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200"
-            : "bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-200",
-        ].join(" ")}
+    <>
+      {/* TX header card */}
+      <div
+        data-testid="tx-status-banner"
+        style={{
+          background: "var(--bg-1)", border: "1px solid var(--border)",
+          borderRadius: 12, padding: "20px 24px", marginBottom: 12,
+        }}
       >
-        {success ? "Success" : "Failed"}
-      </span>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+              <StatusBadge success={success} />
+              <span style={{
+                fontFamily: "var(--font-dm-sans), sans-serif", fontSize: 12, color: "var(--text-3)",
+                background: "var(--bg-2)", borderRadius: 5, padding: "2px 8px",
+                border: "1px solid var(--border)",
+              }}>{cluster}</span>
+            </div>
+            <div style={{
+              fontFamily: "var(--font-jetbrains-mono), monospace", fontSize: 13,
+              color: "var(--text-2)", letterSpacing: "0.01em",
+              wordBreak: "break-all", lineHeight: 1.5,
+            }}>
+              {sig}
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 24, flexShrink: 0, flexWrap: "wrap" }}>
+            {[
+              ["BLOCK",     `#${slot.toLocaleString()}`],
+              ["TIMESTAMP", time              ],
+              ["FEE",       `${lamportsToSol(fee)} SOL`],
+              ["SIGNER",    shortSig          ],
+            ].map(([label, value]) => (
+              <div key={label}>
+                <div style={{ fontFamily: "var(--font-dm-sans), sans-serif", fontSize: 11, color: "var(--text-3)", marginBottom: 4, letterSpacing: "0.06em" }}>{label}</div>
+                <div style={{ fontFamily: "var(--font-jetbrains-mono), monospace", fontSize: 13, color: "var(--text-1)" }}>{value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
-      <span className="text-xs">
-        <span className="font-medium">Fee</span>{" "}
-        <span className="font-mono">{lamportsToSol(fee)} SOL</span>
-      </span>
-
-      <span className="text-xs">
-        <span className="font-medium">Slot</span>{" "}
-        <span className="font-mono">{slot.toLocaleString()}</span>
-      </span>
-
-      <span className="text-xs">
-        <span className="font-medium">Time</span>{" "}
-        <span className="font-mono">{time}</span>
-      </span>
-
-      <span className="text-xs">
-        <span className="font-medium">Compute</span>{" "}
-        <span className="font-mono">{totalCu.toLocaleString()} CU</span>
-      </span>
-    </div>
+      {/* Metadata chips */}
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
+        {chips.map((chip, i) => (
+          <div key={i} style={{
+            fontFamily: "var(--font-dm-sans), sans-serif", fontSize: 12.5, color: chip.color,
+            background: "var(--bg-2)", border: "1px solid var(--border)",
+            borderRadius: 100, padding: "4px 12px",
+          }}>{chip.label}</div>
+        ))}
+      </div>
+    </>
   );
 }
