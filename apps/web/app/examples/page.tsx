@@ -404,7 +404,7 @@ function ExampleCard({ ex }: { ex: Example }) {
           >
             <span>
               <span style={{ letterSpacing: '0.05em' }}>COMPUTE</span>{' '}
-              <span style={{ color: 'var(--text-2)' }}>{ex.compute.toLocaleString()}</span>
+              <span style={{ color: 'var(--text-2)' }}>{ex.compute.toLocaleString('en-US')}</span>
             </span>
             <span>
               <span style={{ letterSpacing: '0.05em' }}>FEE</span>{' '}
