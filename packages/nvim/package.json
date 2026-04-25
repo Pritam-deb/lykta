@@ -1,0 +1,6 @@
+{
+  "name": "@lykta/nvim",
+  "version": "0.1.0",
+  "description": "Neovim plugin for Lykta — Solana transaction observability in your editor",
+  "private": true
+}
