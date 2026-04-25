@@ -20,6 +20,37 @@
 
 **Light inside every transaction — CPI graphs, compute unit flamegraphs, account diffs, and error explanations in your IDE, terminal, and test suite.**
 
+## Try it now
+
+```bash
+npx @lykta/cli inspect 2dFnV9p5XudD1y4yyKfKi8dJiQgKXvGcajigh9scnzunWDMiR9ieoHw6Ge19pu9oTq5LuBSddwQQYivhccQF8h4Y
+```
+
+No API keys. No config. Defaults to Solana devnet.
+
+```
+Fetching 2dFnV9p5XudD1y4yyKfKi8dJiQgKXvGcajigh9scnzunWDMiR9ieoHw6Ge19pu9oTq5LuBSddwQQYivhccQF8h4Y on devnet
+
+✓ SUCCESS  slot 452793604  fee 0.000007295 SOL  12343 CU total
+
+CPI Call Tree
+▶ Compute Budget
+▶ Compute Budget
+▶ Squads Protocol:create
+  └─ System Program
+▶ System Program
+▶ System Program
+
+Compute Units
+  [███████████░░░░░░░░░] 55%  SMPLecH534NA9acpos4G6x7uf3LWbCAwZQE9e8ZekMu  12343/22643
+
+Account Changes
+  6SsyU88GarRL4KqMWLCqsNWJpLeSxiQiN6jKGdcV9Zbw  -3292735 lamports
+  5b2qUSLdLvPyqZv3D8ZQAiNnkQXgJg2TvgGVGbMSxuZq  +2185440 lamports
+  BjHVwPgEJ33Kj3BovX8gW3PVxv6j2bdwky439JAVGadX  +1000000 lamports
+  DttWaMuVvTiduZRnguLF7jNxTgiMBZ1hyAumKUiL2KRL  +100000 lamports
+```
+
 No custom RPC. No browser required. Paste any transaction signature — mainnet, devnet, or local — and get instant visibility inside VS Code.
 
 ---
