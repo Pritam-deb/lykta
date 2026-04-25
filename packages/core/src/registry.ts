@@ -110,6 +110,76 @@ export const SYSTEM_ERRORS: ReadonlyMap<string, string> = new Map([
 ])
 
 /**
+ * Top-level Solana transaction error codes — these appear as `meta.err` strings
+ * (not wrapped in `InstructionError`) and describe failures that abort the whole
+ * transaction before any instruction runs.
+ * Source: https://github.com/solana-labs/solana/blob/master/sdk/src/transaction/error.rs
+ */
+export const TRANSACTION_ERRORS: ReadonlyMap<string, string> = new Map([
+  ['AccountInUse', 'An account is already being used'],
+  ['AccountLoadedTwice', 'An account was referenced more than once in a single transaction'],
+  ['AccountNotFound', 'Attempt to debit an account that does not exist'],
+  ['ProgramAccountNotFound', 'Attempt to load a program that does not exist'],
+  ['InsufficientFundsForFee', 'Insufficient funds to pay transaction fee'],
+  ['InvalidAccountForFee', 'This account cannot pay transaction fees'],
+  ['AlreadyProcessed', 'This transaction has already been processed'],
+  ['BlockhashNotFound', 'Blockhash not found — transaction may have expired'],
+  ['CallChainTooDeep', 'Cross-program invocation call depth exceeded'],
+  ['MissingSignatureForFee', 'Transaction requires a fee-payer signature'],
+  ['InvalidAccountIndex', 'Transaction contains an invalid account reference'],
+  ['SignatureFailure', 'Transaction signature verification failed'],
+  ['InvalidProgramForExecution', 'This program may not be used for transaction execution'],
+  ['SanitizeFailure', 'Transaction failed sanitization — likely malformed'],
+  ['ClusterMaintenance', 'Cluster is under maintenance; transactions are not accepted'],
+  ['AccountBorrowOutstanding', 'Transaction references an account with an outstanding borrow'],
+  ['WouldExceedMaxBlockCostLimit', 'Transaction would exceed the maximum block cost limit'],
+  ['UnsupportedVersion', 'Transaction version is not supported by this cluster'],
+  ['InvalidWritableAccount', 'Transaction marks a non-writable account as writable'],
+  ['WouldExceedMaxAccountCostLimit', 'Transaction would exceed the per-account cost limit'],
+  ['WouldExceedAccountDataBlockLimit', 'Transaction would exceed the per-block account data limit'],
+  ['TooManyAccountLocks', 'Transaction locks too many accounts'],
+  ['AddressLookupTableNotFound', 'Transaction uses an address lookup table that does not exist'],
+  ['InvalidAddressLookupTableIndex', 'Transaction references an invalid index in an address lookup table'],
+  ['InvalidAddressLookupTableData', 'Address lookup table account contains invalid data'],
+  ['InvalidAddressLookupTableOwner', 'Address lookup table account is owned by the wrong program'],
+  ['WouldExceedMaxVoteCostLimit', 'Transaction would exceed the per-block vote cost limit'],
+  ['WouldExceedAccountDataTotalLimit', 'Transaction would exceed the total account data size limit'],
+  ['MaxLoadedAccountsDataSizeExceeded', 'Transaction loaded more account data than allowed'],
+  ['InvalidLoadedAccountsDataSizeLimit', 'Transaction specifies an invalid account data size limit'],
+  ['UnbalancedTransaction', 'Transaction credits and debits do not balance'],
+])
+
+/**
+ * System Program custom error codes.
+ * Source: https://github.com/solana-labs/solana/blob/master/sdk/program/src/system_instruction.rs
+ *
+ * These are `{ Custom: N }` codes emitted by the System Program (11111…).
+ * They share the same code-space as SPL Token errors, so program-aware
+ * lookup is required — never apply this map to a non-system-program instruction.
+ */
+export const SYSTEM_PROGRAM_ERRORS: ReadonlyMap<number, string> = new Map([
+  [0, 'AccountAlreadyInUse: Account is already in use'],
+  [1, 'ResultWithNegativeLamports: Resulting account would have negative lamports'],
+  [2, 'InvalidProgramId: Program ID does not match expected'],
+  [3, 'InvalidAccountDataLength: Invalid account data length'],
+  [4, 'MaxSeedLengthExceeded: Max seed length exceeded'],
+  [5, 'AddressWithSeedMismatch: Address does not match the derived seed'],
+  [6, 'NonceNoRecentBlockhashes: Nonce account: no recent blockhashes'],
+  [7, 'NonceBlockhashNotExpired: Nonce account: blockhash has not yet expired'],
+  [8, 'NonceUnexpectedBlockhashValue: Nonce account: unexpected blockhash value'],
+])
+
+/**
+ * Program IDs that share the SPL Token error code space.
+ * Used by resolveError() to gate SPL_TOKEN_ERRORS lookups so a custom program
+ * returning { Custom: 1 } is never misidentified as "InsufficientFunds".
+ */
+export const SPL_TOKEN_PROGRAM_IDS: ReadonlySet<string> = new Set([
+  'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA', // SPL Token
+  'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb', // SPL Token-2022
+])
+
+/**
  * SPL Token program custom error codes (shared between Token and Token-2022).
  * Source: https://github.com/solana-labs/solana-program-library/blob/master/token/program/src/error.rs
  */

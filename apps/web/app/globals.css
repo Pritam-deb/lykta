@@ -2,20 +2,78 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Design tokens ───────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Light theme (default) */
+  --bg-base:     oklch(97%  0.005 248);
+  --bg-1:        oklch(94%  0.007 248);
+  --bg-2:        oklch(100% 0     0);
+  --bg-3:        oklch(96%  0.005 248);
+  --border:      oklch(87%  0.010 248);
+  --border-2:    oklch(78%  0.014 248);
+  --text-1:      oklch(14%  0.010 248);
+  --text-2:      oklch(38%  0.010 248);
+  --text-3:      oklch(58%  0.010 248);
+  --green:       oklch(52%  0.190 295);
+  --cyan:        oklch(48%  0.140 205);
+  --amber:       oklch(52%  0.170  70);
+  --red:         oklch(48%  0.210  25);
+  --green-glow:  oklch(72% 0.2 295 / 6%);
+  --hero-glow:   oklch(72% 0.2 295 / 4%);
+  --shadow:      oklch(0% 0 0 / 8%);
+  --shadow-heavy:oklch(0% 0 0 / 12%);
+  --nav-bg:      oklch(97% 0.005 248 / 85%);
 }
 
+.dark {
+  /* Dark theme */
+  --bg-base:     oklch(8.5% 0.014 248);
+  --bg-1:        oklch(11%  0.014 248);
+  --bg-2:        oklch(14%  0.014 248);
+  --bg-3:        oklch(18%  0.016 248);
+  --border:      oklch(23% 0.018 248);
+  --border-2:    oklch(30% 0.018 248);
+  --text-1:      oklch(93%  0.005 248);
+  --text-2:      oklch(62%  0.010 248);
+  --text-3:      oklch(40%  0.010 248);
+  --green:       oklch(72%  0.200 295);
+  --cyan:        oklch(72%  0.150 205);
+  --amber:       oklch(75%  0.175  70);
+  --red:         oklch(60%  0.220  25);
+  --green-glow:  oklch(72% 0.2 295 / 8%);
+  --hero-glow:   oklch(72% 0.2 295 / 5%);
+  --shadow:      oklch(0% 0 0 / 30%);
+  --shadow-heavy:oklch(0% 0 0 / 50%);
+  --nav-bg:      oklch(8.5% 0.014 248 / 80%);
+}
+
+html { scroll-behavior: smooth; }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-base);
+  color: var(--text-1);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
 }
 
+/* Dot-grid background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
+  background-size: 28px 28px;
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 0;
+}
+
+::selection { background: var(--green); color: var(--bg-base); }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 3px; }
+
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+  .text-balance { text-wrap: balance; }
 }

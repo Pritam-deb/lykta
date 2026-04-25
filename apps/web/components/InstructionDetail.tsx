@@ -15,7 +15,7 @@ function CopyButton({ text }: { text: string }) {
     <button
       onClick={copy}
       title={text}
-      className="ml-1 rounded px-1 py-0.5 text-[10px] text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+      className="ml-1 rounded px-1 py-0.5 text-[10px] text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300"
     >
       copy
     </button>
@@ -36,23 +36,23 @@ export default function InstructionDetail({ ix }: Props) {
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
       {/* ── Args ─────────────────────────────────────────────────── */}
       <div className="flex flex-col gap-2">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
           Args
         </h3>
 
         {ix.args !== null ? (
-          <div className="rounded border border-gray-200 bg-white p-3">
+          <div className="rounded border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
             <JsonTree data={ix.args} depth={0} />
           </div>
         ) : (
-          <div className="rounded border border-gray-200 bg-gray-50 p-3">
-            <p className="text-xs font-medium text-gray-500">
+          <div className="rounded border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+            <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
               No IDL available — raw data only
             </p>
-            <p className="mt-2 break-all font-mono text-[11px] text-gray-700">
+            <p className="mt-2 break-all font-mono text-[11px] text-gray-700 dark:text-gray-300">
               {ix.rawHex}
             </p>
-            <p className="mt-1 text-[10px] text-gray-400">
+            <p className="mt-1 text-[10px] text-gray-400 dark:text-gray-500">
               discriminator: {ix.discriminatorHex}
             </p>
           </div>
@@ -61,43 +61,43 @@ export default function InstructionDetail({ ix }: Props) {
 
       {/* ── Accounts ─────────────────────────────────────────────── */}
       <div className="flex flex-col gap-2">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
           Accounts
         </h3>
 
         {ix.accounts.length === 0 ? (
-          <p className="text-xs text-gray-400">No accounts</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500">No accounts</p>
         ) : (
-          <div className="overflow-x-auto rounded border border-gray-200">
+          <div className="overflow-x-auto rounded border border-gray-200 dark:border-gray-700">
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-gray-200 bg-gray-50 text-left text-gray-500">
+                <tr className="border-b border-gray-200 bg-gray-50 text-left text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
                   <th className="px-3 py-2 font-medium">#</th>
                   <th className="px-3 py-2 font-medium">Label</th>
                   <th className="px-3 py-2 font-medium">Address</th>
                   <th className="px-3 py-2 font-medium">Flags</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {ix.accounts.map((acc, i) => (
-                  <tr key={i} className="hover:bg-gray-50">
-                    <td className="px-3 py-1.5 font-mono text-gray-400">{i}</td>
-                    <td className="px-3 py-1.5 text-gray-700">
-                      {acc.name || <span className="italic text-gray-400">—</span>}
+                  <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                    <td className="px-3 py-1.5 font-mono text-gray-400 dark:text-gray-500">{i}</td>
+                    <td className="px-3 py-1.5 text-gray-700 dark:text-gray-300">
+                      {acc.name || <span className="italic text-gray-400 dark:text-gray-500">—</span>}
                     </td>
-                    <td className="px-3 py-1.5 font-mono text-gray-600">
+                    <td className="px-3 py-1.5 font-mono text-gray-600 dark:text-gray-400">
                       {truncate(acc.address)}
                       <CopyButton text={acc.address} />
                     </td>
                     <td className="px-3 py-1.5">
                       <div className="flex gap-1">
                         {acc.writable && (
-                          <span className="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-medium text-orange-700">
+                          <span className="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-medium text-orange-700 dark:bg-orange-900/40 dark:text-orange-300">
                             writable
                           </span>
                         )}
                         {acc.signer && (
-                          <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700">
+                          <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
                             signer
                           </span>
                         )}

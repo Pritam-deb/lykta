@@ -1,6 +1,6 @@
 import { Command } from 'commander'
 import { Connection } from '@solana/web3.js'
-import { fetchTransaction, explainError } from '@lykta/core'
+import { decodeTransaction, explainError } from '@lykta/core'
 import chalk from 'chalk'
 
 const CLUSTERS: Record<string, string> = {
@@ -14,19 +14,22 @@ export const errorCommand = new Command('error')
   .argument('<signature>', 'Transaction signature')
   .option('-c, --cluster <cluster>', 'Cluster to query: mainnet | devnet | localnet', 'devnet')
   .option('-r, --rpc <url>', 'Custom RPC URL (overrides --cluster)')
-  .action(async (signature: string, opts: { cluster: string; rpc?: string }) => {
-    const rpcUrl = opts.rpc ?? CLUSTERS[opts.cluster] ?? CLUSTERS['devnet']!
+  .option('-u, --url <url>', 'Custom RPC URL — alias for --rpc')
+  .option('--ai', 'Use Gemini AI to generate a fix suggestion (requires GEMINI_API_KEY)')
+  .action(async (signature: string, opts: { cluster: string; rpc?: string; url?: string; ai?: boolean }) => {
+    const rpcUrl = opts.url ?? opts.rpc ?? CLUSTERS[opts.cluster] ?? CLUSTERS['devnet']!
     const connection = new Connection(rpcUrl, 'confirmed')
 
     try {
-      const tx = await fetchTransaction(signature, connection)
+      const tx = await decodeTransaction(signature, connection)
 
       if (tx.success) {
         console.log(chalk.green('✓ Transaction succeeded — no error to explain.'))
         return
       }
 
-      const error = await explainError(tx, connection)
+      const geminiApiKey = opts.ai ? (process.env.GEMINI_API_KEY ?? '') : ''
+      const error = await explainError(tx, connection, undefined, geminiApiKey)
       if (!error) {
         console.log(chalk.yellow('Could not decode error details.'))
         return
@@ -44,7 +47,7 @@ export const errorCommand = new Command('error')
         console.log(chalk.bold('  AI Fix Suggestion:'))
         console.log(chalk.cyan(`  ${error.suggestion}\n`))
       } else {
-        console.log(chalk.dim('  (Set ANTHROPIC_API_KEY for AI-powered fix suggestions)\n'))
+        console.log(chalk.dim('  (Set GEMINI_API_KEY and use --ai for AI-powered fix suggestions)\n'))
       }
     } catch (err) {
       console.error(chalk.red('Error:'), err instanceof Error ? err.message : String(err))

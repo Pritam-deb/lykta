@@ -1,6 +1,6 @@
 import { Command } from 'commander'
 import { Connection } from '@solana/web3.js'
-import { fetchTransaction } from '@lykta/core'
+import { decodeTransaction } from '@lykta/core'
 import chalk from 'chalk'
 
 const CLUSTERS: Record<string, string> = {
@@ -14,12 +14,13 @@ export const diffCommand = new Command('diff')
   .argument('<signature>', 'Transaction signature')
   .option('-c, --cluster <cluster>', 'Cluster to query: mainnet | devnet | localnet', 'devnet')
   .option('-r, --rpc <url>', 'Custom RPC URL (overrides --cluster)')
-  .action(async (signature: string, opts: { cluster: string; rpc?: string }) => {
-    const rpcUrl = opts.rpc ?? CLUSTERS[opts.cluster] ?? CLUSTERS['devnet']!
+  .option('-u, --url <url>', 'Custom RPC URL — alias for --rpc')
+  .action(async (signature: string, opts: { cluster: string; rpc?: string; url?: string }) => {
+    const rpcUrl = opts.url ?? opts.rpc ?? CLUSTERS[opts.cluster] ?? CLUSTERS['devnet']!
     const connection = new Connection(rpcUrl, 'confirmed')
 
     try {
-      const tx = await fetchTransaction(signature, connection)
+      const tx = await decodeTransaction(signature, connection)
 
       console.log(chalk.bold(`\nAccount Diffs — ${signature.slice(0, 16)}…\n`))
 

@@ -1,7 +1,8 @@
 import type { Connection, VersionedTransactionResponse } from '@solana/web3.js'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import type { Idl } from '@coral-xyz/anchor'
+import { GoogleGenAI } from '@google/genai'
 import type { LyktaError, LyktaTransaction } from './types.js'
-import { SYSTEM_ERRORS, SPL_TOKEN_ERRORS } from './registry.js'
+import { SYSTEM_ERRORS, SPL_TOKEN_ERRORS, SPL_TOKEN_PROGRAM_IDS, SYSTEM_PROGRAM_ERRORS, TRANSACTION_ERRORS } from './registry.js'
 
 /** Known Anchor framework error codes → human-readable messages */
 const ANCHOR_ERRORS: Record<number, string> = {
@@ -26,30 +27,82 @@ const ANCHOR_ERRORS: Record<number, string> = {
 }
 
 /**
+ * Calls the Claude API and returns a 2-sentence plain-English explanation of why the
+ * transaction failed.  Returns `null` on any error so a Claude outage never breaks the
+ * main resolution path.
+ *
+ * Not exported — consumed only by `explainError` when an API key is present.
+ */
+async function explainWithAI(params: {
+  code: number | string
+  programId: string
+  idlErrors: { code: number; name: string; msg?: string }[]
+  logs: string[]
+  apiKey: string
+}): Promise<string | null> {
+  try {
+    const ai = new GoogleGenAI({ apiKey: params.apiKey })
+
+    const recentLogs = params.logs.slice(-15).join('\n')
+    const errorList = params.idlErrors.length > 0
+      ? JSON.stringify(params.idlErrors.map((e) => ({ code: e.code, name: e.name, msg: e.msg })))
+      : '(none available)'
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents:
+        `A Solana transaction failed.\n` +
+        `Program: ${params.programId}\n` +
+        `Error code: ${params.code}\n\n` +
+        `Known errors for this program:\n${errorList}\n\n` +
+        `Last transaction logs:\n${recentLogs}\n\n` +
+        `Explain in exactly 2 sentences what went wrong and what the caller should check.`,
+      config: {
+        systemInstruction: 'You are a Solana developer assistant. Be concise and technical.',
+        maxOutputTokens: 256,
+      },
+    })
+
+    return response.text ?? null
+  } catch {
+    return null
+  }
+}
+
+/**
  * Resolves the error from a failed `VersionedTransactionResponse` without requiring
  * a `LyktaTransaction` wrapper or network calls.
  *
  * Resolution order for `{ InstructionError: [idx, detail] }` errors:
  *  1. **System/runtime errors** — `detail` is a string → look up in `SYSTEM_ERRORS`
  *  2. **Anchor framework errors** — `detail` is `{ Custom: N }` in range 100–3999
- *  3. **SPL Token errors** — `detail` is `{ Custom: N }` → look up in `SPL_TOKEN_ERRORS`
+ *  3a. **System Program errors** — `programId` is `11111…` → look up in `SYSTEM_PROGRAM_ERRORS`
+ *  3b. **SPL Token errors** — `programId` is a known Token program → look up in `SPL_TOKEN_ERRORS`
  *  4. **Unknown custom error** — falls back to `"Custom program error: 0xNNN"`
  *
  * The `programId` is extracted from the instruction at `idx` inside the transaction
  * message, so no additional arguments are needed.
  *
- * A Claude API tier is intentionally omitted here — it will be wired up in Week 3.
+ * Intentionally synchronous — no Claude tier here. AI suggestions require an async
+ * call; use `explainError()` when you need the Claude fallback.
  */
 export function resolveError(tx: VersionedTransactionResponse): LyktaError | undefined {
   const rawErr = tx.meta?.err
   if (!rawErr) return undefined
 
+  // Transaction-level errors are plain strings (e.g. "BlockhashNotFound", "InsufficientFundsForFee")
+  if (typeof rawErr === 'string') {
+    const txMsg = TRANSACTION_ERRORS.get(rawErr)
+    return { code: rawErr, programId: 'unknown', name: rawErr, message: txMsg ?? rawErr }
+  }
+
   const errObj = rawErr as Record<string, unknown>
 
-  // Transaction-level errors (not instruction-level) — e.g. "BlockhashNotFound"
+  // Transaction-level object errors with no InstructionError key (rare edge cases)
   if (!('InstructionError' in errObj)) {
     const code = String(rawErr)
-    return { code, programId: 'unknown', message: code }
+    const txMsg = TRANSACTION_ERRORS.get(code)
+    return { code, programId: 'unknown', name: code, message: txMsg ?? code }
   }
 
   const [ixIndex, detail] = errObj['InstructionError'] as [number, unknown]
@@ -84,11 +137,22 @@ export function resolveError(tx: VersionedTransactionResponse): LyktaError | und
       return { code, programId, name, message: anchorMsg }
     }
 
-    // ── Tier 3: SPL Token errors ──────────────────────────────────────────────
-    const splMsg = SPL_TOKEN_ERRORS.get(code)
-    if (splMsg) {
-      const name = splMsg.split(':')[0] ?? splMsg
-      return { code, programId, name, message: splMsg }
+    // ── Tier 3a: System Program errors (program-specific, checked before SPL) ─
+    if (programId === '11111111111111111111111111111111') {
+      const sysProgMsg = SYSTEM_PROGRAM_ERRORS.get(code)
+      if (sysProgMsg) {
+        const name = sysProgMsg.split(':')[0] ?? sysProgMsg
+        return { code, programId, name, message: sysProgMsg }
+      }
+    }
+
+    // ── Tier 3b: SPL Token errors (only for known Token / Token-2022 programs) ─
+    if (SPL_TOKEN_PROGRAM_IDS.has(programId)) {
+      const splMsg = SPL_TOKEN_ERRORS.get(code)
+      if (splMsg) {
+        const name = splMsg.split(':')[0] ?? splMsg
+        return { code, programId, name, message: splMsg }
+      }
     }
 
     // Unrecognised custom code
@@ -104,19 +168,30 @@ export function resolveError(tx: VersionedTransactionResponse): LyktaError | und
 }
 
 /**
- * Decodes the error from a failed transaction and optionally generates a fix suggestion
- * using the Claude API (when ANTHROPIC_API_KEY is set in the environment).
+ * Decodes the error from a failed transaction using a multi-tier resolution strategy:
+ *
+ *  1. **Anchor framework errors** — codes 100–3999 resolved from the built-in map.
+ *  2. **IDL errors** — `idlMap` entry for the failing program scanned for a matching
+ *     `code` field.  No network call required when the caller pre-fetches via
+ *     `fetchIdlsForPrograms`.
+ *  3. **Generic fallback** — raw error JSON with no name set.
+ *  4. **Gemini suggestion** — when `geminiApiKey` (or `GEMINI_API_KEY` env var) is
+ *     present and tiers 1–2 did not resolve a name, calls `explainWithAI` and
+ *     attaches the result as `error.suggestion`.  Never throws — Gemini failure is
+ *     silently swallowed so the caller always gets a `LyktaError`.
  */
 export async function explainError(
   tx: LyktaTransaction,
   _connection: Connection,
+  idlMap?: Map<string, Idl | null>,
+  geminiApiKey?: string,
 ): Promise<LyktaError | undefined> {
   if (tx.success) return undefined
 
   const rawErr = tx.raw.meta?.err
   if (!rawErr) return undefined
 
-  // Parse Anchor custom error codes from log messages
+  // Extract error code and failing program ID from log messages
   const logs = tx.raw.meta?.logMessages ?? []
   let code: number | string = 'unknown'
   let programId = 'unknown'
@@ -134,17 +209,39 @@ export async function explainError(
     }
   }
 
-  const name = typeof code === 'number' ? ANCHOR_ERRORS[code] : undefined
-  const message = name ?? `Transaction failed with error: ${JSON.stringify(rawErr)}`
+  // ── Tier 1: Anchor framework errors (100–3999) ────────────────────────────
+  if (typeof code === 'number') {
+    const anchorMsg = ANCHOR_ERRORS[code]
+    if (anchorMsg) {
+      const name = anchorMsg.split(':')[0] ?? anchorMsg
+      return { code, programId, name, message: anchorMsg }
+    }
+  }
 
-  const error: LyktaError = name
-    ? { code, programId, name, message }
-    : { code, programId, message }
+  // ── Tier 2: IDL error lookup ──────────────────────────────────────────────
+  if (typeof code === 'number' && idlMap) {
+    const idl = idlMap.get(programId)
+    const idlError = idl?.errors?.find((e) => e.code === code)
+    if (idlError) {
+      return {
+        code,
+        programId,
+        name: idlError.name,
+        message: idlError.msg ?? idlError.name,
+      }
+    }
+  }
 
-  // TODO (Week 4): call Claude API for AI-generated fix suggestion
-  // if (process.env.ANTHROPIC_API_KEY) {
-  //   error.suggestion = await callClaude({ logs, error, idl })
-  // }
+  // ── Generic fallback + optional Claude suggestion (Tier 4) ──────────────
+  const message = `Transaction failed with error: ${JSON.stringify(rawErr)}`
+  const error: LyktaError = { code, programId, message }
+
+  const apiKey = geminiApiKey ?? process.env.GEMINI_API_KEY
+  if (apiKey) {
+    const idlErrors = (idlMap?.get(programId)?.errors) ?? []
+    const suggestion = await explainWithAI({ code, programId, idlErrors, logs, apiKey })
+    if (suggestion) error.suggestion = suggestion
+  }
 
   return error
 }

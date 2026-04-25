@@ -4,6 +4,7 @@ import type { VersionedTransactionResponse } from '@solana/web3.js'
 import simpleTx from './fixtures/simple-transfer.json'
 import failedTx from './fixtures/failed-anchor.json'
 import jupiterSwapLogs from './fixtures/logs-jupiter-swap.json'
+import computeBudgetTx from './fixtures/compute-budget-exceeded.json'
 
 describe('parseCuUsage', () => {
   it('extracts CU usage from log messages', () => {
@@ -95,6 +96,46 @@ describe('extractComputeUnits', () => {
     expect(usage[0]!.isOverBudget).toBe(true)
   })
 
+  it('AC2 — isOverBudget=true on the exceeded instruction from compute-budget-exceeded fixture', () => {
+    // Fixture has consumed 200000 of 200000 followed by a failed line — real-world CU ceiling hit
+    const usage = extractComputeUnits(computeBudgetTx as unknown as VersionedTransactionResponse)
+
+    expect(usage).toHaveLength(1)
+    expect(usage[0]!.programId).toBe('HeavyProg1111111111111111111111111111111111111')
+    expect(usage[0]!.consumed).toBe(200_000)
+    expect(usage[0]!.limit).toBe(200_000)
+    expect(usage[0]!.isOverBudget).toBe(true)
+  })
+
+  it('AC1 — 3-instruction tx produces 3 entries with correct unitsConsumed and incrementing instructionIndex', () => {
+    const threeIxTx = {
+      ...simpleTx,
+      meta: {
+        ...simpleTx.meta,
+        logMessages: [
+          'Program AAA1111111111111111111111111111111111111111 invoke [1]',
+          'Program AAA1111111111111111111111111111111111111111 consumed 1000 of 50000 compute units',
+          'Program AAA1111111111111111111111111111111111111111 success',
+          'Program BBB1111111111111111111111111111111111111111 invoke [1]',
+          'Program BBB1111111111111111111111111111111111111111 consumed 25000 of 50000 compute units',
+          'Program BBB1111111111111111111111111111111111111111 success',
+          'Program CCC1111111111111111111111111111111111111111 invoke [1]',
+          'Program CCC1111111111111111111111111111111111111111 consumed 49999 of 50000 compute units',
+          'Program CCC1111111111111111111111111111111111111111 success',
+        ],
+      },
+    }
+    const usage = extractComputeUnits(threeIxTx as unknown as VersionedTransactionResponse)
+
+    expect(usage).toHaveLength(3)
+    expect(usage[0]!.instructionIndex).toBe(0)
+    expect(usage[0]!.consumed).toBe(1000)
+    expect(usage[1]!.instructionIndex).toBe(1)
+    expect(usage[1]!.consumed).toBe(25000)
+    expect(usage[2]!.instructionIndex).toBe(2)
+    expect(usage[2]!.consumed).toBe(49999)
+  })
+
   it('handles multiple sequential top-level instructions', () => {
     const multiTx = {
       ...simpleTx,
@@ -115,6 +156,29 @@ describe('extractComputeUnits', () => {
     expect(usage[0]!.instructionIndex).toBe(0)
     expect(usage[1]!.instructionIndex).toBe(1)
     expect(usage[1]!.isOverBudget).toBe(false) // 40000 < 49000
+  })
+
+  it('AC3 — returns empty array when logMessages is empty', () => {
+    const tx = {
+      ...simpleTx,
+      meta: { ...simpleTx.meta, logMessages: [] },
+    }
+    expect(extractComputeUnits(tx as unknown as VersionedTransactionResponse)).toHaveLength(0)
+  })
+
+  it('AC3 — returns empty array when logs have invoke+success but no consumed line', () => {
+    // ComputeBudget instructions always produce this pattern — no consumed line is emitted
+    const tx = {
+      ...simpleTx,
+      meta: {
+        ...simpleTx.meta,
+        logMessages: [
+          'Program ComputeBudget111111111111111111111111111111 invoke [1]',
+          'Program ComputeBudget111111111111111111111111111111 success',
+        ],
+      },
+    }
+    expect(extractComputeUnits(tx as unknown as VersionedTransactionResponse)).toHaveLength(0)
   })
 
   it('does not include nested CPI consumed lines in parseCuUsage comparison', () => {

@@ -1,14 +1,37 @@
 {
-  "name": "@lykta/vscode",
+  "name": "lykta",
   "displayName": "Lykta",
   "description": "Solana developer observability — CPI graphs, compute unit flamegraphs, account diffs, and error explanations inside VS Code.",
   "version": "0.1.0",
   "publisher": "lykta",
+  "license": "MIT",
+  "icon": "icon.png",
+  "homepage": "https://github.com/Pritam-deb/lykta#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Pritam-deb/lykta.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Pritam-deb/lykta/issues"
+  },
+  "galleryBanner": {
+    "color": "#0f172a",
+    "theme": "dark"
+  },
   "engines": {
     "vscode": "^1.90.0"
   },
-  "categories": ["Other", "Debuggers"],
-  "keywords": ["solana", "anchor", "blockchain", "debugging", "developer-tools"],
+  "categories": [
+    "Other",
+    "Debuggers"
+  ],
+  "keywords": [
+    "solana",
+    "anchor",
+    "blockchain",
+    "debugging",
+    "developer-tools"
+  ],
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
@@ -28,6 +51,10 @@
       {
         "command": "lykta.showCuFlamegraph",
         "title": "Lykta: Show Compute Unit Flamegraph"
+      },
+      {
+        "command": "lykta.explainError",
+        "title": "Lykta: Explain Transaction Error"
       }
     ],
     "configuration": {
@@ -40,7 +67,12 @@
         },
         "lykta.cluster": {
           "type": "string",
-          "enum": ["mainnet", "devnet", "localnet", "custom"],
+          "enum": [
+            "mainnet",
+            "devnet",
+            "localnet",
+            "custom"
+          ],
           "default": "devnet",
           "description": "Default cluster to query."
         }
@@ -48,17 +80,24 @@
     }
   },
   "scripts": {
-    "build": "tsup src/extension.ts --format cjs --dts --sourcemap --external vscode",
+    "build": "tsup src/extension.ts --format cjs --dts --sourcemap --external vscode && tsup src/webview/app.tsx --format iife --outDir dist/webview --platform browser --no-dts",
     "dev": "tsup src/extension.ts --format cjs --sourcemap --watch --external vscode",
+    "build:webview": "tsup src/webview/app.tsx --format iife --outDir dist/webview --platform browser --no-dts",
     "lint": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "package": "pnpm build && npx vsce package --no-dependencies",
+    "publish:marketplace": "pnpm build && npx vsce publish --no-dependencies"
   },
   "dependencies": {
     "@lykta/core": "workspace:*",
     "@solana/web3.js": "^1.95.0"
   },
   "devDependencies": {
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
     "@types/vscode": "^1.90.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
     "tsup": "^8.0.0",
     "typescript": "^5.5.0"
   }

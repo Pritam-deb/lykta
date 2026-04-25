@@ -2,21 +2,22 @@
 
 import { useState } from "react";
 import type { CpiNode, AccountDiff, CuUsage, DecodedInstruction } from "@lykta/core";
-import CpiGraph from "@/components/CpiGraph";
+import CpiTree from "@/components/CpiTree";
 import AccountDiffTable from "@/components/AccountDiff";
 import TokenDiffTable, { type SerializedTokenDiff } from "@/components/TokenDiff";
 import ComputeMeter from "@/components/ComputeMeter";
 import InstructionList from "@/components/InstructionList";
+import RawPanel from "@/components/RawPanel";
 
 type Tab = "cpi" | "instructions" | "accounts" | "tokens" | "compute" | "raw";
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: "cpi",          label: "CPI Tree" },
-  { id: "instructions", label: "Instructions" },
+  { id: "cpi",          label: "CPI Tree"      },
+  { id: "instructions", label: "Instructions"  },
   { id: "accounts",     label: "Account Diffs" },
-  { id: "tokens",       label: "Token Diffs" },
-  { id: "compute",      label: "Compute" },
-  { id: "raw",          label: "Raw JSON" },
+  { id: "tokens",       label: "Token Diffs"   },
+  { id: "compute",      label: "Compute"       },
+  { id: "raw",          label: "Raw JSON"      },
 ];
 
 interface Props {
@@ -30,60 +31,53 @@ interface Props {
 }
 
 export default function TxTabs({
-  cpiTree,
-  decodedInstructions,
-  accountDiffs,
-  tokenDiffs,
-  cuUsage,
-  totalCu,
-  rawJson,
+  cpiTree, decodedInstructions, accountDiffs, tokenDiffs, cuUsage, totalCu, rawJson,
 }: Props) {
   const [active, setActive] = useState<Tab>("cpi");
 
   return (
-    <div className="flex flex-col gap-4">
+    <div>
       {/* Tab bar */}
-      <div className="flex border-b border-gray-200">
-        {TABS.map((tab) => (
+      <div style={{
+        display: "flex", gap: 2,
+        borderBottom: "1px solid var(--border)",
+        overflowX: "auto",
+      }}>
+        {TABS.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActive(tab.id)}
-            className={[
-              "px-4 py-2 text-sm font-medium transition-colors",
-              active === tab.id
-                ? "border-b-2 border-black text-black"
-                : "text-gray-500 hover:text-gray-800",
-            ].join(" ")}
+            style={{
+              background: "transparent", border: "none",
+              borderBottom: active === tab.id ? "2px solid var(--green)" : "2px solid transparent",
+              padding: "10px 16px",
+              fontFamily: "var(--font-dm-sans), sans-serif",
+              fontWeight: active === tab.id ? 600 : 400,
+              fontSize: 13.5,
+              color: active === tab.id ? "var(--text-1)" : "var(--text-2)",
+              cursor: "pointer", whiteSpace: "nowrap",
+              transition: "color 0.15s, border-color 0.15s",
+              marginBottom: -1,
+            }}
           >
             {tab.label}
           </button>
         ))}
       </div>
 
-      {/* Tab panels */}
-      {active === "cpi" && <CpiGraph cpiTree={cpiTree} />}
-
-      {active === "instructions" && (
-        <InstructionList decodedInstructions={decodedInstructions} />
-      )}
-
-      {active === "accounts" && (
-        <AccountDiffTable accountDiffs={accountDiffs} />
-      )}
-
-      {active === "tokens" && (
-        <TokenDiffTable tokenDiffs={tokenDiffs} />
-      )}
-
-      {active === "compute" && (
-        <ComputeMeter cuUsage={cuUsage} totalCu={totalCu} />
-      )}
-
-      {active === "raw" && (
-        <pre className="overflow-x-auto rounded border border-gray-200 bg-gray-950 p-4 text-xs leading-relaxed text-gray-100">
-          {rawJson}
-        </pre>
-      )}
+      {/* Tab panel */}
+      <div style={{
+        background: "var(--bg-1)", border: "1px solid var(--border)",
+        borderTop: "none", borderRadius: "0 0 12px 12px",
+        minHeight: 440,
+      }}>
+        {active === "cpi"          && <CpiTree cpiTree={cpiTree} />}
+        {active === "instructions" && <InstructionList decodedInstructions={decodedInstructions} />}
+        {active === "accounts"     && <AccountDiffTable accountDiffs={accountDiffs} />}
+        {active === "tokens"       && <TokenDiffTable tokenDiffs={tokenDiffs} />}
+        {active === "compute"      && <ComputeMeter cuUsage={cuUsage} totalCu={totalCu} />}
+        {active === "raw"          && <RawPanel json={rawJson} />}
+      </div>
     </div>
   );
 }

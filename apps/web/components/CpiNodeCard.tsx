@@ -21,31 +21,31 @@ export default function CpiNodeCard({ data }: NodeProps<CpiNodeData>) {
         data-testid="cpi-node"
         title={failed && cpiNode.failReason ? cpiNode.failReason : undefined}
         className={[
-          "min-w-[160px] rounded bg-white px-3 py-2 shadow-md",
+          "min-w-[160px] rounded bg-white px-3 py-2 shadow-md dark:bg-gray-800",
           "border-l-4 text-xs",
           failed ? "border-red-500" : "border-green-500",
         ].join(" ")}
       >
         {/* Program label */}
-        <p className="font-mono font-semibold leading-tight text-gray-800">
+        <p className="font-mono font-semibold leading-tight text-gray-800 dark:text-gray-100">
           {label}
         </p>
 
         {/* Success / fail badge */}
         <div className="mt-1.5 flex items-center gap-2">
           {failed ? (
-            <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-medium text-red-700">
+            <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-medium text-red-700 dark:bg-red-900/40 dark:text-red-300">
               failed
             </span>
           ) : (
-            <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700">
+            <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700 dark:bg-green-900/40 dark:text-green-300">
               ok
             </span>
           )}
 
           {/* CU consumption — only when present */}
           {cpiNode.computeUnits !== undefined && (
-            <span className="text-[10px] text-gray-400">
+            <span className="text-[10px] text-gray-400 dark:text-gray-500">
               {cpiNode.computeUnits.consumed.toLocaleString()} /{" "}
               {cpiNode.computeUnits.limit.toLocaleString()} CU
             </span>

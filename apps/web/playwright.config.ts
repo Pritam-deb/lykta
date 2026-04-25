@@ -19,6 +19,4 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  // Do NOT start a dev server automatically — tests run against BASE_URL.
-  webServer: undefined,
 })

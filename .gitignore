@@ -4,7 +4,9 @@ dist
 .env
 .env.local
 *.tsbuildinfo
+*.tgz
 coverage
 .DS_Store
 out
 build
+DOCUMENTATION.md

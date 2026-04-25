@@ -1,16 +1,18 @@
 {
   "name": "@lykta/litesvm",
-  "version": "0.1.0",
+  "version": "0.4.1",
   "description": "LiteSVM wrapper with enhanced error reporting, CPI trees, account diffs, and compute unit profiling for Solana tests.",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.mts"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --sourcemap",
     "dev": "tsup src/index.ts --format esm --dts --sourcemap --watch",
@@ -21,6 +23,7 @@
   "dependencies": {
     "@lykta/core": "workspace:*",
     "@solana/web3.js": "^1.95.0",
+    "bs58": "^6.0.0",
     "litesvm": "^0.5.0"
   },
   "devDependencies": {

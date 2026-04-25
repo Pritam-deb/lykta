@@ -9,35 +9,6 @@ function truncate(address: string): string {
   return `${address.slice(0, 8)}…${address.slice(-4)}`;
 }
 
-function IdlBadge({ matched }: { matched: boolean }) {
-  if (matched) {
-    return (
-      <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700">
-        decoded
-      </span>
-    );
-  }
-  return (
-    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500">
-      no IDL
-    </span>
-  );
-}
-
-function ChevronIcon({ open }: { open: boolean }) {
-  return (
-    <svg
-      className={`h-3 w-3 shrink-0 text-gray-400 transition-transform ${open ? "rotate-90" : ""}`}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2.5}
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-    </svg>
-  );
-}
-
 interface Props {
   decodedInstructions: DecodedInstruction[];
 }
@@ -47,14 +18,14 @@ export default function InstructionList({ decodedInstructions }: Props) {
 
   if (decodedInstructions.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-gray-400">
-        No instructions decoded
-      </p>
+      <div style={{ padding: 24, textAlign: "center", paddingTop: 48 }}>
+        <p style={{ fontFamily: "var(--font-dm-sans), sans-serif", fontSize: 14, color: "var(--text-3)" }}>No instructions decoded</p>
+      </div>
     );
   }
 
   function toggle(i: number) {
-    setExpanded((prev) => {
+    setExpanded(prev => {
       const next = new Set(prev);
       next.has(i) ? next.delete(i) : next.add(i);
       return next;
@@ -62,46 +33,58 @@ export default function InstructionList({ decodedInstructions }: Props) {
   }
 
   return (
-    <div className="overflow-x-auto rounded border border-gray-200">
-      {decodedInstructions.map((ix, i) => {
-        const isOpen = expanded.has(i);
-        const programLabel =
-          ix.node.programName ?? truncate(ix.node.programId);
+    <div style={{ padding: 24 }}>
+      <h3 style={{ fontFamily: "var(--font-space-grotesk), sans-serif", fontWeight: 700, fontSize: 16, color: "var(--text-1)", marginBottom: 4 }}>Instructions</h3>
+      <p style={{ fontFamily: "var(--font-dm-sans), sans-serif", fontSize: 13, color: "var(--text-3)", marginBottom: 20 }}>{decodedInstructions.length} top-level instruction{decodedInstructions.length !== 1 ? "s" : ""}</p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {decodedInstructions.map((ix, i) => {
+          const isOpen = expanded.has(i);
+          const programLabel = ix.node.programName ?? truncate(ix.node.programId);
 
-        return (
-          <div key={i} className="border-b border-gray-100 last:border-0">
-            {/* Collapsed row */}
-            <button
-              onClick={() => toggle(i)}
-              className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-gray-50"
-            >
-              <ChevronIcon open={isOpen} />
-
-              <span className="w-6 shrink-0 text-center font-mono text-xs text-gray-400">
-                {i}
-              </span>
-
-              <span className="min-w-[140px] font-mono text-xs font-medium text-gray-700">
-                {programLabel}
-              </span>
-
-              <span className="flex-1 text-xs text-gray-600">
-                {ix.name ?? (
-                  <span className="italic text-gray-400">unknown</span>
+          return (
+            <div key={i} style={{ background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden" }}>
+              <button
+                onClick={() => toggle(i)}
+                style={{
+                  width: "100%", padding: "12px 16px",
+                  display: "flex", alignItems: "center", gap: 12,
+                  cursor: "pointer", textAlign: "left",
+                  background: "transparent", border: "none",
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--bg-3)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+              >
+                <span style={{
+                  fontFamily: "var(--font-jetbrains-mono), monospace", fontSize: 11,
+                  color: "var(--text-3)", background: "var(--bg-base)",
+                  borderRadius: 4, padding: "2px 8px", minWidth: 28, textAlign: "center", flexShrink: 0,
+                }}>#{i}</span>
+                <span style={{ fontFamily: "var(--font-dm-sans), sans-serif", fontWeight: 600, fontSize: 13.5, color: "var(--text-1)" }}>{programLabel}</span>
+                {ix.name && (
+                  <span style={{ fontFamily: "var(--font-jetbrains-mono), monospace", fontSize: 12, color: "var(--cyan)", background: "var(--bg-base)", borderRadius: 4, padding: "2px 8px" }}>
+                    {ix.name}
+                  </span>
                 )}
-              </span>
+                {ix.matched ? (
+                  <span style={{ fontFamily: "var(--font-dm-sans), sans-serif", fontSize: 10.5, color: "var(--green)", background: "color-mix(in oklch, var(--green) 12%, transparent)", padding: "1px 7px", borderRadius: 100 }}>decoded</span>
+                ) : (
+                  <span style={{ fontFamily: "var(--font-dm-sans), sans-serif", fontSize: 10.5, color: "var(--text-3)", background: "var(--bg-3)", padding: "1px 7px", borderRadius: 100 }}>no IDL</span>
+                )}
+                <span style={{ marginLeft: "auto", fontFamily: "var(--font-dm-sans), sans-serif", fontSize: 12, color: "var(--text-3)", flexShrink: 0 }}>
+                  {ix.accounts.length} accounts
+                </span>
+                <span style={{ color: "var(--text-3)", fontSize: 11, transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s", flexShrink: 0 }}>▾</span>
+              </button>
 
-              <IdlBadge matched={ix.matched} />
-            </button>
-
-            {isOpen && (
-              <div className="border-t border-gray-100 bg-gray-50 p-4">
-                <InstructionDetail ix={ix} />
-              </div>
-            )}
-          </div>
-        );
-      })}
+              {isOpen && (
+                <div style={{ padding: "12px 16px", borderTop: "1px solid var(--border)", background: "var(--bg-base)" }}>
+                  <InstructionDetail ix={ix} />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

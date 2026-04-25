@@ -1,0 +1,16 @@
+# Source — compiled to dist/ at build time
+src/
+tsconfig.json
+
+# Dependencies — bundled into dist/extension.js by tsup
+node_modules/
+
+# Monorepo tooling
+.turbo/
+*.tsbuildinfo
+
+# Source maps — not needed in the installed extension
+dist/**/*.map
+
+# Dev artifacts
+.DS_Store

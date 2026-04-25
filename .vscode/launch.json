@@ -1,0 +1,30 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // Launches a new VS Code window with the Lykta extension loaded.
+      // Press F5 from the repo root (or packages/vscode) to start.
+      // The Extension Development Host opens with the built extension active.
+      // Run "pnpm build" in packages/vscode before launching to pick up latest changes.
+      "name": "Launch Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/packages/vscode/dist/**/*.js"
+      ],
+      "preLaunchTask": "build-extension",
+      "sourceMaps": true
+    },
+    {
+      // Attach to an already-running Extension Development Host for debugging
+      // without triggering a rebuild.
+      "name": "Attach to Extension Host",
+      "type": "extensionHost",
+      "request": "attach",
+      "port": 6009
+    }
+  ]
+}

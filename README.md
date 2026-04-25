@@ -29,7 +29,7 @@ No custom RPC. No browser required. Paste any transaction signature — mainnet,
 | Package                                 | Description                                                                             |
 | --------------------------------------- | --------------------------------------------------------------------------------------- |
 | [`@lykta/core`](./packages/core)       | Transaction decode engine, CPI tree builder, account diff, CU analyzer, error explainer |
-| [`@lykta/cli`](./packages/cli)         | `npx lykta inspect \| diff \| error <signature>`                                        |
+| [`@lykta/cli`](./packages/cli)         | `npx lykta inspect \| diff \| error \| watch <signature\|programId>`                    |
 | [`@lykta/vscode`](./packages/vscode)   | VS Code extension — CPI graph, account diff, CU flamegraph, error explanation panels    |
 | [`@lykta/litesvm`](./packages/litesvm) | LiteSVM wrapper with enhanced error output for tests                                    |
 
@@ -75,14 +75,23 @@ Supported clusters: `mainnet-beta` (default), `devnet`, `testnet`.
 # Inspect any transaction — CPI tree + compute units + account changes
 npx @lykta/cli inspect <SIGNATURE> --cluster devnet
 
+# Use a custom RPC URL
+npx @lykta/cli inspect <SIGNATURE> --url https://your-rpc.com
+
 # Show account state diffs
 npx @lykta/cli diff <SIGNATURE>
 
 # Explain why a transaction failed
 npx @lykta/cli error <SIGNATURE>
 
-# Set ANTHROPIC_API_KEY for AI-powered fix suggestions
-ANTHROPIC_API_KEY=sk-ant-... npx @lykta/cli error <SIGNATURE>
+# Add AI-powered fix suggestion (requires ANTHROPIC_API_KEY in env)
+ANTHROPIC_API_KEY=sk-ant-... npx @lykta/cli error <SIGNATURE> --ai
+
+# Watch a program in real-time via websocket
+npx @lykta/cli watch <PROGRAM_ID> --cluster devnet
+
+# Watch but only print failed transactions
+npx @lykta/cli watch <PROGRAM_ID> --errors-only
 ```
 
 ### VS Code
@@ -152,7 +161,7 @@ pnpm test           # Tests for this package only
 ```bash
 cd packages/cli
 pnpm build
-node dist/bin.js inspect <SIGNATURE> --cluster devnet
+node dist/bin.mjs inspect <SIGNATURE> --cluster devnet
 ```
 
 ### Running the VS Code extension locally
@@ -179,9 +188,10 @@ packages/core       ← All analysis logic. No UI, no CLI concerns.
 
 packages/cli        ← Commander.js CLI. Consumes @lykta/core.
     commands/
-        inspect.ts  ← npx lykta inspect <sig>
+        inspect.ts  ← npx lykta inspect <sig>  (renderInspect shared renderer)
         diff.ts     ← npx lykta diff <sig>
-        error.ts    ← npx lykta error <sig>
+        error.ts    ← npx lykta error <sig> [--ai]
+        watch.ts    ← npx lykta watch <programId> [--errors-only]
 
 packages/vscode     ← VS Code extension. Consumes @lykta/core.
     extension.ts    ← Activation, command registration
