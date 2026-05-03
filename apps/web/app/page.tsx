@@ -435,6 +435,7 @@ export default function HomePage() {
           {[
             { label: 'Docs', href: '/docs' },
             { label: 'Examples', href: '/examples' },
+            { label: 'Tutorial', href: '/tutorial' },
             { label: 'GitHub', href: 'https://github.com/Pritam-deb/lykta' },
           ].map((l) => (
             <a
