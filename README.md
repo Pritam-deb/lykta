@@ -62,6 +62,7 @@ No custom RPC. No browser required. Paste any transaction signature — mainnet,
 | [`@lykta/core`](./packages/core)       | Transaction decode engine, CPI tree builder, account diff, CU analyzer, error explainer |
 | [`@lykta/cli`](./packages/cli)         | `npx lykta inspect \| diff \| error \| watch <signature\|programId>`                    |
 | [`@lykta/vscode`](./packages/vscode)   | VS Code extension — CPI graph, account diff, CU flamegraph, error explanation panels    |
+| [`@lykta/nvim`](./packages/nvim)       | Neovim plugin — same commands in floating windows, driven by the CLI                    |
 | [`@lykta/litesvm`](./packages/litesvm) | LiteSVM wrapper with enhanced error output for tests                                    |
 
 ---
@@ -131,6 +132,62 @@ npx @lykta/cli watch <PROGRAM_ID> --errors-only
 2. Open the command palette (`Cmd+Shift+P`) and run **Lykta: Inspect Transaction**
 3. Paste a transaction signature
 4. CPI graph, account diff, and compute unit flamegraph panels open automatically
+
+### Neovim
+
+**Requirements:** Neovim ≥ 0.9, Node.js ≥ 20 (for `npx`)
+
+#### lazy.nvim
+
+```lua
+{
+  'Pritam-deb/lykta',
+  opts = {
+    cluster = 'devnet',       -- mainnet | devnet | testnet | localnet
+    rpc_url = nil,            -- override RPC endpoint (optional)
+  },
+}
+```
+
+#### packer.nvim
+
+```lua
+use {
+  'Pritam-deb/lykta',
+  config = function()
+    require('lykta').setup({ cluster = 'devnet' })
+  end,
+}
+```
+
+#### vim-plug
+
+```vim
+Plug 'Pritam-deb/lykta'
+" then in init.vim / init.lua:
+lua require('lykta').setup({ cluster = 'devnet' })
+```
+
+#### Commands
+
+| Command | Description |
+|---|---|
+| `:LyktaInspect [sig]` | CPI tree + compute units + account diffs |
+| `:LyktaDiff [sig]` | Account & token diffs only |
+| `:LyktaError [sig]` | Human-readable error explanation |
+| `:LyktaErrorAI [sig]` | Error explanation with AI fix suggestion |
+| `:LyktaWatch [program-id]` | Live stream of program transactions |
+
+If no signature is passed, the plugin first tries the word under the cursor, then prompts you. Output opens in a centered floating window — press `q` or `<Esc>` to close.
+
+#### Suggested keymaps
+
+```lua
+vim.keymap.set('n', '<leader>li', '<cmd>LyktaInspect<cr>', { desc = 'Lykta inspect' })
+vim.keymap.set('n', '<leader>ld', '<cmd>LyktaDiff<cr>',    { desc = 'Lykta diff' })
+vim.keymap.set('n', '<leader>le', '<cmd>LyktaError<cr>',   { desc = 'Lykta error' })
+vim.keymap.set('n', '<leader>lw', '<cmd>LyktaWatch<cr>',   { desc = 'Lykta watch' })
+```
 
 ### LiteSVM (tests)
 
@@ -231,6 +288,14 @@ packages/vscode     ← VS Code extension. Consumes @lykta/core.
         AccountDiffPanel.ts ← WebView panel — before/after account view (Week 3)
         CuFlamegraph.ts     ← WebView panel — per-instruction CU bars (Week 3)
         ErrorPanel.ts       ← WebView panel — error + Claude suggestion (Week 4)
+
+packages/nvim       ← Neovim plugin. Shells out to @lykta/cli.
+    lua/lykta/
+        init.lua    ← setup() / config (cluster, rpc_url)
+        ui.lua      ← floating window helpers
+        commands.lua← inspect, diff, error, watch implementations
+    plugin/
+        lykta.lua   ← registers :Lykta* user commands on startup
 
 packages/litesvm    ← LiteSVM wrapper. Consumes @lykta/core.
     context.ts      ← LyktaTestContext — intercepts tx processing (Week 4)

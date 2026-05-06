@@ -824,6 +824,21 @@ export default function DocsPage() {
             Examples
           </button>
           <button
+            onClick={() => router.push('/tutorial')}
+            style={{
+              background: 'var(--bg-2)',
+              border: '1px solid var(--border)',
+              borderRadius: 6,
+              padding: '6px 14px',
+              fontFamily: 'var(--font-dm-sans), sans-serif',
+              fontSize: 13.5,
+              color: 'var(--text-2)',
+              cursor: 'pointer',
+            }}
+          >
+            Tutorial
+          </button>
+          <button
             onClick={() => router.push('/')}
             style={{
               background: 'var(--green)',
